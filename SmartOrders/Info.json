@@ -1,0 +1,10 @@
+{
+  "Id": "SmartOrders",
+  "DisplayName": "Smart Orders",
+  "Author": "Peter Ellis Jones",
+  "Version": "1.0.0",
+  "Requirements": [],
+  "LoadAfter": [],
+  "AssemblyName": "SmartOrders.dll",
+  "EntryMethod": "SmartOrders.Main.Load"
+}
