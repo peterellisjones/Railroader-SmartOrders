@@ -10,6 +10,8 @@ This mod adds the following buttons to the Yard AI panel:
 
 When approaching or clearing a switch, if the train stops on the _exit side_ of the switch, the AI will leave enough room for the other track to be used.
 
+The AI will look for switches as far as 1000m away, but is less precise the further away the target switch is.
+
 ## Installation
 
 * Download `SmartOrders.UMM.zip` from the releases page
