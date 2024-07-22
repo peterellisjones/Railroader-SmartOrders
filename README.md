@@ -12,6 +12,8 @@ When approaching or clearing a switch, if the train stops on the _exit side_ of 
 
 The AI will look for switches as far as 1000m away, but is less precise the further away the target switch is.
 
+Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod
+
 ## Installation
 
 * Download `SmartOrders.UMM.zip` from the releases page
