@@ -1,0 +1,7 @@
+{
+    "manifestVersion": 1,
+    "id": "SmartOrders",
+    "name": "SmartOrders",
+    "version": "$(AssemblyVersion)",
+    "assemblies": [ "SmartOrders" ]
+}
