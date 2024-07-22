@@ -22,10 +22,10 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             return;
         }
 
-        //if (!Main.enableDebug)
-        //{
-        //    return;
-        //}
+        if (!SmartOrdersPlugin.Settings.EnableDebug)
+        {
+            return;
+        }
 
         __instance.Say(message);
     }
