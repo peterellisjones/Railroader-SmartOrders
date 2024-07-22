@@ -16,7 +16,7 @@ Known incompatability: Unfortunately this mod is **not** compatible with wexp's 
 
 ## Installation
 
-* Download `SmartOrders.UMM.zip` from the releases page
-* Install with [Unity Mod Manager](https://www.nexusmods.com/site/mods/21)
+* Download `SmartOrders-VERSION.Railloader.zip` from the releases page
+* Install with [Railloader]([https://www.nexusmods.com/site/mods/21](https://railroader.stelltis.ch/))
 
 ![screenshot](./Capture.PNG)
