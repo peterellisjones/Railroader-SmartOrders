@@ -102,8 +102,8 @@ namespace SmartOrders
                 return;
             }
 
-            // Distances above 1000m used to signal special behaviour
-            if (distanceInMeters <= 1000)
+            // Distances above 1001m to 1012m are used to signal special behaviour
+            if (distanceInMeters <= 1000f || distanceInMeters >= 1013f)
             {
                 return;
             }
@@ -191,8 +191,9 @@ namespace SmartOrders
             int switchesFound = 0;
             bool foundSwitch = false;
             var safetyMargin = 2; // distance to leave clear of switch
+            var maxSegmentsToSearch = 50;
 
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < maxSegmentsToSearch; i++)
             {
                 if (i == 0)
                 {
@@ -223,6 +224,7 @@ namespace SmartOrders
                 if (graph.IsSwitch(node))
                 {
                     DebugLog(ref __instance, $"Found next switch at {distanceInMeters}m");
+
                     switchesFound += 1;
                     foundSwitch = (switchesFound >= switchesToFind);
 
@@ -387,27 +389,56 @@ namespace SmartOrders
                 bldr.AddButton("Approach Ahead", delegate
                 {
                     SetOrdersValue(null, null, null, 1001f);
-                });
+                }).Tooltip("Approach Ahead", "Approach, but do not pass, the first switch found in front of the train. Switches under the train are ignored.");
                 bldr.AddButton("Clear Ahead", delegate
                 {
                     SetOrdersValue(null, null, null, 1002f);
-                });
-            }, 4));
+                }).Tooltip("Clear Ahead", "Clear the first switch found in front of the train. Switches under the train are ignored.");
+            }, 4)).Tooltip("AI move to switch control", "Use Approach Ahead and Clear Ahead to approach or clear the first switch IN FRONT of the train. Switches under the train are ignored.\nUse the 1, 2, 3 etc buttons to move the train past switches in the direction travel starting from the BACK of the train. This includes switches that are currently UNDER the train as well as switches in front of the train");
 
             builder.AddField("", builder.ButtonStrip(delegate (UIPanelBuilder bldr)
             {
-                bldr.AddButton("Clear 1", delegate
+                bldr.AddButton("1", delegate
                 {
                     SetOrdersValue(null, null, null, 1003f);
-                });
-                bldr.AddButton("Clear 2", delegate
+                }).Tooltip("Clear 1 switch", "Clear the next switch from the back of the train in the direction of travel");
+                bldr.AddButton("2", delegate
                 {
                     SetOrdersValue(null, null, null, 1004f);
-                });
-                bldr.AddButton("Clear 3", delegate
+                }).Tooltip("Clear 2 switches", "Clear the next 2 switches from the back of the train in the direction of travel");
+                bldr.AddButton("3", delegate
                 {
                     SetOrdersValue(null, null, null, 1005f);
-                });
+                }).Tooltip("Clear 3 switches", "Clear the next 3 switches from the back of the train in the direction of travel");
+
+                bldr.AddButton("4", delegate
+                {
+                    SetOrdersValue(null, null, null, 1006f);
+                }).Tooltip("Clear 4 switches", "Clear the next 6 switches from the back of the train in the direction of travel");
+                bldr.AddButton("5", delegate
+                {
+                    SetOrdersValue(null, null, null, 1007f);
+                }).Tooltip("Clear 5 switches", "Clear the next 6 switches from the back of the train in the direction of travel");
+                bldr.AddButton("6", delegate
+                {
+                    SetOrdersValue(null, null, null, 1008f);
+                }).Tooltip("Clear 6 switches", "Clear the next 6 switches from the back of the train in the direction of travel");
+                bldr.AddButton("7", delegate
+                {
+                    SetOrdersValue(null, null, null, 1009f);
+                }).Tooltip("Clear 7 switches", "Clear the next 7 switches from the back of the train in the direction of travel");
+                bldr.AddButton("8", delegate
+                {
+                    SetOrdersValue(null, null, null, 1010f);
+                }).Tooltip("Clear 8 switches", "Clear the next 8 switches from the back of the train in the direction of travel");
+                bldr.AddButton("9", delegate
+                {
+                    SetOrdersValue(null, null, null, 1011f);
+                }).Tooltip("Clear 9 switches", "Clear the next 9 switches from the back of the train in the direction of travel");
+                bldr.AddButton("10", delegate
+                {
+                    SetOrdersValue(null, null, null, 1012f);
+                }).Tooltip("Clear 10 switches", "Clear the next 10 switches from the back of the train in the direction of travel");
             }, 4));
         }
     }

@@ -2,7 +2,7 @@
   "Id": "SmartOrders",
   "DisplayName": "Smart Orders",
   "Author": "Peter Ellis Jones",
-  "Version": "1.0.0",
+  "Version": "1.1.0",
   "Requirements": [],
   "LoadAfter": [],
   "AssemblyName": "SmartOrders.dll",
