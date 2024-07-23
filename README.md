@@ -18,6 +18,8 @@ Example usage:
 
 You have a train stopped in Parson's Tannery P3 and need to get back to the mainline. There are seven switches between Parson's Tannery P3 and the mainline, so you press the **7** button and the AI magically brings the entire train back to the mainline stopping just beyond the last switch.
 
+If you find this mod useful you might like **[FlyShuntUI](https://github.com/peterellisjones/Railroader-FlyShuntUI)** as well
+
 ## Installation
 
 * Download `SmartOrders-VERSION.Railloader.zip` from the releases page
