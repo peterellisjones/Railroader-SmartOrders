@@ -287,7 +287,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             {
                 if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
                     var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                    __instance.Say($"{action} {cars}{"car".Pluralize(cars)} up to switch");
+                    __instance.Say($"{action} {cars} {"car".Pluralize(cars)} up to switch");
                 } else {
                     __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft up to switch");
                 }
@@ -298,7 +298,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
 
                 if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
                     var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                    __instance.Say($"{action} {cars}{"car".Pluralize(cars)} to clear {str}");
+                    __instance.Say($"{action} {cars} {"car".Pluralize(cars)} to clear {str}");
                 } else {
                     __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft to clear {str}");
                 }
@@ -308,7 +308,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         {
             if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
                 var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                __instance.Say($"{action} {cars}{"car".Pluralize(cars)}");
+                __instance.Say($"{action} {cars} {"car".Pluralize(cars)}");
             } else {
                 __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft");
             }
