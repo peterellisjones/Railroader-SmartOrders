@@ -78,7 +78,7 @@
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(ModDirectory)" />
 
     <!-- Zip it up -->
-    <Exec Command="powershell -Command &quot;Compress-Archive -Path '$(ModsDirectory)' -Destination '$(ZipName)'&quot;" />
+    <Exec Command="powershell -Command &quot;Compress-Archive -Path '$(ModDirectory)' -Destination '$(ZipName)'&quot;" />
     
     <!-- Move them to the game directory -->
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(GameModDir)" />
