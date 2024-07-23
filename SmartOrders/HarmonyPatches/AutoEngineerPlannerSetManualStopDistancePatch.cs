@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Core;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
 using Model.AI;
 using Track;
+using UnityEngine;
 
 [UsedImplicitly]
 [HarmonyPatch(typeof(AutoEngineerPlanner), "SetManualStopDistance", new Type[] { typeof(float) })]
@@ -44,6 +46,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         }
 
         const float FEET_PER_METER = 3.28084f;
+        const float CAR_LENGTH_IN_METERS = 12.2f;
         const float MAX_DISTANCE_IN_METERS = 4000f / FEET_PER_METER;
 
         // 1001 => approach ahead
@@ -282,17 +285,34 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         {
             if (stopBeforeSwitch)
             {
-                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft up to switch");
+                if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
+                    var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                    __instance.Say($"{action} {cars}{"car".Pluralize(cars)} up to switch");
+                } else {
+                    __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft up to switch");
+                }
             }
             else
             {
                 var str = switchesToFind == 1 ? "switch" : $"{switchesToFind} switches";
-                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft to clear {str}");
+
+                if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
+                    var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                    __instance.Say($"{action} {cars}{"car".Pluralize(cars)} to clear {str}");
+                } else {
+                    __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft to clear {str}");
+                }
             }
         }
         else
         {
-            __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft");
+            if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
+                var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                __instance.Say($"{action} {cars}{"car".Pluralize(cars)}");
+            } else {
+                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft");
+            }
+            
         }
 
     }
