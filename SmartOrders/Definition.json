@@ -2,6 +2,6 @@
     "manifestVersion": 1,
     "id": "SmartOrders",
     "name": "SmartOrders",
-    "version": "$(AssemblyVersion)",
+    "version": "1.1.1",
     "assemblies": [ "SmartOrders" ]
 }

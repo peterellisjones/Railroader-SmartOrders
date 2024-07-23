@@ -43,6 +43,9 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             return;
         }
 
+        const float FEET_PER_METER = 3.28084f;
+        const float MAX_DISTANCE_IN_METERS = 4000f / FEET_PER_METER;
+
         // 1001 => approach ahead
         // 1002 => clear ahead
         // 1003 => clear under
@@ -120,7 +123,6 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         segment = start.segment;
         segmentEnd = start.EndIsA ? TrackSegment.End.B : TrackSegment.End.A;
 
-        var maxDistanceMeters = 1000;
         distanceInMeters = 0;
 
         int switchesFound = 0;
@@ -141,10 +143,10 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
                 distanceInMeters += segment.GetLength();
             }
 
-            if (distanceInMeters > maxDistanceMeters)
+            if (distanceInMeters > MAX_DISTANCE_IN_METERS)
             {
-                distanceInMeters = maxDistanceMeters;
-                DebugLog(ref __instance, $"Reached max distance {maxDistanceMeters}m");
+                distanceInMeters = MAX_DISTANCE_IN_METERS;
+                DebugLog(ref __instance, $"Reached max distance {MAX_DISTANCE_IN_METERS}m");
                 break;
             }
 
@@ -280,17 +282,17 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         {
             if (stopBeforeSwitch)
             {
-                __instance.Say($"{action} {Math.Round(distanceInMeters)}m up to switch");
+                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft up to switch");
             }
             else
             {
                 var str = switchesToFind == 1 ? "switch" : $"{switchesToFind} switches";
-                __instance.Say($"{action} {Math.Round(distanceInMeters)}m to clear {str}");
+                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft to clear {str}");
             }
         }
         else
         {
-            __instance.Say($"{action} {Math.Round(distanceInMeters)}m");
+            __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft");
         }
 
     }
