@@ -14,13 +14,16 @@ The AI will look for switches as far as 4000 feet away, but is less precise the 
 
 Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod
 
+Example usage:
+
+You have a train stopped in Parson's Tannery P3 and need to get back to the mainline. There are seven switches between Parson's Tannery P3 and the mainline, so you press the **7** button and the AI magically brings the entire train back to the mainline stopping just beyond the last switch.
+
 ## Installation
 
 * Download `SmartOrders-VERSION.Railloader.zip` from the releases page
 * Install with [Railloader]([https://www.nexusmods.com/site/mods/21](https://railroader.stelltis.ch/))
 
 ![screenshot](./Capture.PNG)
-
 
 ## Project Setup
 
