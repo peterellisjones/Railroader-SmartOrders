@@ -1,11 +1,11 @@
 ﻿namespace SmartOrders;
 
 using System.Collections.Generic;
-using SmartOrders.Dialogs;
+using SmartOrders.Scheduler;
 
 public class Settings {
 
-    public bool EnableDebug { get; set; } = false;
+    public bool EnableDebug { get; set; }
 
     public Dictionary<string, List<Schedule>> Schedules { get; set; } = new();
 
