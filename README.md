@@ -12,7 +12,7 @@ When approaching or clearing a switch, if the train stops on the _exit side_ of 
 
 The AI will look for switches as far as 4000 feet away, but is less precise the further away the target switch is.
 
-Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod
+Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod, however if you use SmartOrders and just ask the AI to move the train "10 switches" it has the same effect as "move the train really far".
 
 Example usage:
 
