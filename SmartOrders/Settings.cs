@@ -1,6 +1,7 @@
 ﻿namespace SmartOrders;
 
-public class Settings {
+public class Settings
+{
 
     public bool EnableDebug { get; set; }
 
@@ -8,8 +9,9 @@ public class Settings {
 
 }
 
-public enum MeasureType {
+public enum MeasureType
+{
     Feet,
     Meter,
-    Car
+    CarLengths
 }
