@@ -289,7 +289,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             case MeasureType.Meter:
                 distanceString = $"{Math.Round(distanceInMeters)}m";
                 break;
-            case MeasureType.Car:
+            case MeasureType.CarLengths:
                 var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
                 distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
                 break;
