@@ -1,4 +1,9 @@
-﻿namespace SmartOrders.HarmonyPatches;
+﻿// simple way to disable new code :)
+
+#define SCHEDULER_ENABLED
+#if SCHEDULER_ENABLED
+
+namespace SmartOrders.HarmonyPatches;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -35,20 +40,52 @@ public static class CarInspectorPatches {
             return;
         }
 
-        builder.AddField("", builder.ButtonStrip(strip => {
+        builder.ButtonStrip(strip => {
             var consist = ____car.EnumerateCoupled()!.ToArray();
 
             if (consist.Any(c => c.air!.handbrakeApplied)) {
-                strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => Jobs.ReleaseAllHandbrakes(consist))!
+                strip.AddButtonCompact($"Release {TextSprites.HandbrakeWheel}", () => Jobs.ReleaseAllHandbrakes(consist))!
                     .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
             }
 
             if (consist.Any(c => c.EndAirSystemIssue())) {
-                strip.AddButton("Connect Air", () => Jobs.ConnectAir(consist))!
+                strip.AddButtonCompact("Connect Air", () => Jobs.ConnectAir(consist))!
                     .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
             }
+        });
 
-        })!);
+        builder.ButtonStrip(strip => {
+            var consist = ____car.EnumerateCoupled()!.ToArray();
+
+            strip.AddPopupMenu("Set handbrake on car:",
+                consist.Select((o, i) => new PopupMenuItem($"#{i + 1} ({o.name})", () => Jobs.SetHandbrake(consist, i)))
+            );
+
+            strip.AddButton("Scheduler", () => SmartOrdersPlugin.TrackSegmentDialog.ShowWindow((BaseLocomotive)____car));
+        });
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(CarInspector), "Populate")]
+    public static void Populate(Car? car) {
+        if (!SmartOrdersPlugin.Shared.IsEnabled) {
+            return;
+        }
+
+        if (car == null) {
+            return;
+        }
+
+        if (!SmartOrdersPlugin.TrackSegmentDialog.IsShown) {
+            return;
+        }
+
+        SmartOrdersPlugin.TrackSegmentDialog.CloseWindow();
+        if (car.IsLocomotive) {
+            SmartOrdersPlugin.TrackSegmentDialog.ShowWindow((BaseLocomotive)car);
+        }
     }
 
 }
+
+#endif

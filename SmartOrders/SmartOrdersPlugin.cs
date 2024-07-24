@@ -6,6 +6,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Railloader;
 using Serilog;
+using SmartOrders.Scheduler;
 using UI.Builder;
 
 [UsedImplicitly]
@@ -14,7 +15,7 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public static IModdingContext Context { get; private set; } = null!;
     public static IUIHelper UiHelper { get; private set; } = null!;
-    public static Settings Settings { get; private set; }
+    public static Settings Settings { get; private set; } = null!;
 
     private readonly ILogger _Logger = Log.ForContext<SmartOrdersPlugin>()!;
 
@@ -51,7 +52,14 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public void ModTabDidClose()
     {
+        SaveSettings();
+    }
+
+    public static void SaveSettings() {
         Context.SaveSettingsData("SmartOrders", Settings);
     }
+
+    private static SchedulerDialog? _TrackSegmentDialog;
+    public static SchedulerDialog TrackSegmentDialog => _TrackSegmentDialog ??= new SchedulerDialog();
 
 }

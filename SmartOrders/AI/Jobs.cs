@@ -5,20 +5,36 @@ using Game.State;
 using HarmonyLib;
 using Model;
 using SmartOrders.HarmonyPatches;
+using SmartOrders.Scheduler;
 
 public static class Jobs {
 
     public static void ReleaseAllHandbrakes(Car[] consist) {
         consist.Do(c => c.SetHandbrake(false));
 
+        if (SchedulerBehaviour.Shared?.IsRecording != true) {
+            return;
+        }
+
+        SchedulerBehaviour.Shared.AddCommand(ScheduleCommand.ReleaseHandbrakes());
     }
-    
+
+    public static void SetHandbrake(Car[] consist, int index) {
+        var tc = UnityEngine.Object.FindObjectOfType<TrainController>()!;
+        tc.ApplyHandbrakesAsNeeded([consist[index]], PlaceTrainHandbrakes.Automatic);
+    }
+
     public static void ConnectAir(Car[] consist) {
         foreach (var car in consist) {
             ConnectAirCore(car, Car.LogicalEnd.A);
             ConnectAirCore(car, Car.LogicalEnd.B);
         }
 
+        if (SchedulerBehaviour.Shared?.IsRecording != true) {
+            return;
+        }
+
+        SchedulerBehaviour.Shared.AddCommand(ScheduleCommand.ConnectAir());
         return;
 
         static void ConnectAirCore(Car car, Car.LogicalEnd end) {
