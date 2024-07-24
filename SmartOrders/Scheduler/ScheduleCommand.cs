@@ -2,12 +2,11 @@ namespace SmartOrders.Scheduler;
 
 using System;
 using Core;
-using Track;
 using UnityEngine;
 
 public class ScheduleCommand {
 
-    public static ScheduleCommand Move(bool forward, float? maxSpeed, float distance) {
+    public static ScheduleCommand Move(bool forward, int? maxSpeed, float distance) {
         return new ScheduleCommand(ScheduleCommandType.MOVE, forward, maxSpeed, distance, true, 0);
     }
 
@@ -35,7 +34,7 @@ public class ScheduleCommand {
         return new ScheduleCommand(ScheduleCommandType.RESTORE_SWITCH, forward, null, 0, true, 0);
     }
 
-    private ScheduleCommand(ScheduleCommandType commandType, bool forward, float? maxSpeed, float distance, bool switchToNormal, int index) {
+    private ScheduleCommand(ScheduleCommandType commandType, bool forward, int? maxSpeed, float distance, bool switchToNormal, int index) {
         CommandType = commandType;
         Forward = forward;
         MaxSpeed = maxSpeed;
@@ -48,7 +47,7 @@ public class ScheduleCommand {
 
     // MOVE
     public bool Forward { get; }
-    public float? MaxSpeed { get; } // null = yard
+    public int? MaxSpeed { get; } // null = yard mode
     public float Distance { get; }
 
     // SET_SWITCH

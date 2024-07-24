@@ -1,12 +1,23 @@
 namespace SmartOrders.Scheduler;
 
+using System;
 using System.Collections.Generic;
+using GalaSoft.MvvmLight.Messaging;
+using Game.Events;
 using JetBrains.Annotations;
 using Model;
 using UnityEngine;
 
 [PublicAPI]
 public sealed class SchedulerBehaviour : MonoBehaviour {
+
+    public Action? Refresh { get; set; }
+
+    public static SchedulerBehaviour Shared { get; private set; }
+
+    public SchedulerBehaviour() {
+        Shared = this;
+    }
 
     public BaseLocomotive Locomotive { get; set; } = null!;
 
@@ -22,7 +33,7 @@ public sealed class SchedulerBehaviour : MonoBehaviour {
     }
 
     public void ExecuteSchedule(Schedule schedule) {
-        UI.Console.Console.shared.AddLine("AI Engineer: Running schedule '" + schedule.Name + "' ...");
+        UI.Console.Console.shared.AddLine("AI Engineer: " + Locomotive.name + ":  Running schedule '" + schedule.Name + "' ...");
 
         // notification when schedule is finished?
     }
@@ -34,54 +45,59 @@ public sealed class SchedulerBehaviour : MonoBehaviour {
         SmartOrdersPlugin.SaveSettings();
     }
 
-    private Schedule? _NewSchedule;
+    public Schedule? NewSchedule { get; private set; }
+
+    public void AddCommand(ScheduleCommand command) {
+        if (NewSchedule == null) {
+            return;
+        }
+
+        UI.Console.Console.shared!.AddLine("AI Engineer " + Locomotive.name + ": " + command + " got it ...");
+        NewSchedule.Commands.Add(command);
+        Refresh?.Invoke();
+    }
 
     public bool IsRecording { get; private set; }
     public bool HasUnsavedSchedule { get; private set; }
 
     public void StartRecording() {
-        UI.Console.Console.shared!.AddLine("AI Engineer: Im watching ...");
+        UI.Console.Console.shared!.AddLine("AI Engineer " + Locomotive.name + ": Im watching ...");
         HasUnsavedSchedule = false;
         IsRecording = true;
-        _NewSchedule = new Schedule();
+        NewSchedule = new Schedule();
+        Messenger.Default.Register<SwitchThrownDidChange>(this, o => {
+            UI.Console.Console.shared.AddLine("Switch " + o.Node.id + " toggled");
+        });
+        Refresh?.Invoke();
     }
 
     public void StopRecording() {
-        if (_NewSchedule == null) {
+        if (NewSchedule == null) {
             return;
         }
 
         IsRecording = false;
         HasUnsavedSchedule = true;
+        Messenger.Default.Unregister<SwitchThrownDidChange>(this);
+        Refresh?.Invoke();
 
-        // dummy data
-        _NewSchedule.Commands.Add(ScheduleCommand.ConnectAir());
-        _NewSchedule.Commands.Add(ScheduleCommand.ReleaseHandbrakes());
-        _NewSchedule.Commands.Add(ScheduleCommand.Move(true, 30, 122f));
-        _NewSchedule.Commands.Add(ScheduleCommand.SetSwitch(true, true));
-        _NewSchedule.Commands.Add(ScheduleCommand.Move(false, null, 20f));
-        _NewSchedule.Commands.Add(ScheduleCommand.RestoreSwitch(false));
-        _NewSchedule.Commands.Add(ScheduleCommand.Move(false, 30, 61f));
-        _NewSchedule.Commands.Add(ScheduleCommand.SetHandbrake(5));
-        _NewSchedule.Commands.Add(ScheduleCommand.Uncouple(5));
-        _NewSchedule.Commands.Add(ScheduleCommand.Move(true, null, 12.2f));
-        UI.Console.Console.shared!.AddLine("AI Engineer: I recorded " + _NewSchedule.Commands.Count + " commands ...");
+        UI.Console.Console.shared!.AddLine("AI Engineer: I recorded " + NewSchedule.Commands.Count + " commands ...");
     }
 
     public void SaveSchedule(string scheduleName) {
-        if (_NewSchedule == null) {
+        if (NewSchedule == null) {
             return;
         }
 
-        _NewSchedule.Name = scheduleName;
-        Data.Add(_NewSchedule);
+        NewSchedule.Name = scheduleName;
+        Data.Add(NewSchedule);
         HasUnsavedSchedule = false;
 
         SmartOrdersPlugin.SaveSettings();
     }
 
     public void DiscardSchedule() {
-        _NewSchedule = null;
+        NewSchedule = null;
         HasUnsavedSchedule = false;
     }
 

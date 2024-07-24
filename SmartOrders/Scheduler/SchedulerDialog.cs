@@ -58,7 +58,14 @@ public sealed class SchedulerDialog {
             }
         });
 
+        
         builder.AddListDetail(_Scheduler.Data.Select(GetScheduleDataItem), _SelectedSchedule, (itemBuilder, schedule) => {
+            _Scheduler.Refresh = () => itemBuilder.Rebuild();
+
+            if (_Scheduler is { IsRecording: true, NewSchedule: not null }) {
+                schedule = _Scheduler.NewSchedule;
+            }
+
             if (schedule == null) {
                 itemBuilder.AddLabel(_Scheduler.Data.Any() ? "Please select a schedule." : "No schedules configured.");
             } else {
