@@ -282,19 +282,21 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
 
         String distanceString;
 
-        if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet)
-        {
-            var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-            distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+        switch (SmartOrdersPlugin.Settings.MeasureType) {
+            case MeasureType.Feet:
+                distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
+                break;
+            case MeasureType.Meter:
+                distanceString = $"{Math.Round(distanceInMeters)}m";
+                break;
+            case MeasureType.Car:
+                var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
-        else if (SmartOrdersPlugin.Settings.UseMetersInsteadOfFeet)
-        {
-            distanceString = $"{Math.Round(distanceInMeters)}m";
-        } else
-        {
-            distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
-        }
-
+        
         if (foundSwitch)
         {
             if (stopBeforeSwitch)
