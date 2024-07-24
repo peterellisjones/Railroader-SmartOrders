@@ -36,6 +36,7 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public void ModTabDidOpen(UIPanelBuilder builder) {
         builder.AddField("Debug", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!);
+        builder.AddField("Report in car lengths", builder.AddToggle(() => Settings.UseCarLengthInsteadOfFeet, o => Settings.UseCarLengthInsteadOfFeet = o)!);
     }
 
     public void ModTabDidClose() {
