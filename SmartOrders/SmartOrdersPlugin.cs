@@ -1,5 +1,7 @@
 namespace SmartOrders;
 
+using System;
+using System.Linq;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Railloader;
@@ -38,11 +40,12 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
         harmony.UnpatchAll();
     }
 
-    public void ModTabDidOpen(UIPanelBuilder builder)
-    {
-
-        builder.AddField("Use car lengths, not feet", builder.AddToggle(() => Settings.UseCarLengthInsteadOfFeet, o => Settings.UseCarLengthInsteadOfFeet = o)!);
-        builder.AddField("Use meters, not feet", builder.AddToggle(() => Settings.UseMetersInsteadOfFeet, o => Settings.UseMetersInsteadOfFeet = o)!);
+    public void ModTabDidOpen(UIPanelBuilder builder) {
+        var lengths = Enum.GetNames(typeof(MeasureType)).ToList();
+        builder.AddField("Measure distance in", builder.AddDropdown(lengths, (int)Settings.MeasureType, o => {
+            Settings.MeasureType = (MeasureType)o;
+            builder.Rebuild();
+        })!);
         builder.AddField("Send debug logs to console", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!);
     }
 
