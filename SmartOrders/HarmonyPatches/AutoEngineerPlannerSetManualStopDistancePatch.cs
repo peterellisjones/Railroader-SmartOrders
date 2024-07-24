@@ -54,7 +54,6 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         // 1003 => clear under
 
         bool stopBeforeSwitch = distanceInMeters == 1001f;
-
         bool clearSwitchesUnderTrain = distanceInMeters >= 1003f;
 
         int switchesToFind = 1;
@@ -281,38 +280,39 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             action = "Moving forwards";
         }
 
+        String distanceString;
+
+        switch (SmartOrdersPlugin.Settings.MeasureType) {
+            case MeasureType.Feet:
+                distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
+                break;
+            case MeasureType.Meter:
+                distanceString = $"{Math.Round(distanceInMeters)}m";
+                break;
+            case MeasureType.Car:
+                var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
         if (foundSwitch)
         {
             if (stopBeforeSwitch)
             {
-                if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
-                    var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                    __instance.Say($"{action} {cars} {"car".Pluralize(cars)} up to switch");
-                } else {
-                    __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft up to switch");
-                }
+                __instance.Say($"{action} {distanceString} up to switch");
             }
             else
             {
                 var str = switchesToFind == 1 ? "switch" : $"{switchesToFind} switches";
 
-                if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
-                    var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                    __instance.Say($"{action} {cars} {"car".Pluralize(cars)} to clear {str}");
-                } else {
-                    __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft to clear {str}");
-                }
+                __instance.Say($"{action} {distanceString} to clear {str}");
             }
         }
         else
         {
-            if (SmartOrdersPlugin.Settings.UseCarLengthInsteadOfFeet) {
-                var cars = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                __instance.Say($"{action} {cars} {"car".Pluralize(cars)}");
-            } else {
-                __instance.Say($"{action} {Math.Round(distanceInMeters * FEET_PER_METER)}ft");
-            }
-            
+            __instance.Say($"{action} {distanceString}");
         }
 
     }
