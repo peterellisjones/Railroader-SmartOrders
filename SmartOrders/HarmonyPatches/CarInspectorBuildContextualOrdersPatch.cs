@@ -66,11 +66,11 @@ namespace SmartOrders.HarmonyPatches
                 bldr.AddButton("4", delegate
                 {
                     SetOrdersValue(null, null, null, 1006f);
-                }).Tooltip("Clear 4 switches", "Clear the next 6 switches from the back of the train in the direction of travel");
+                }).Tooltip("Clear 4 switches", "Clear the next 4 switches from the back of the train in the direction of travel");
                 bldr.AddButton("5", delegate
                 {
                     SetOrdersValue(null, null, null, 1007f);
-                }).Tooltip("Clear 5 switches", "Clear the next 6 switches from the back of the train in the direction of travel");
+                }).Tooltip("Clear 5 switches", "Clear the next 5 switches from the back of the train in the direction of travel");
                 bldr.AddButton("6", delegate
                 {
                     SetOrdersValue(null, null, null, 1008f);
