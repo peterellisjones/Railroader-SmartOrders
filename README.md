@@ -10,7 +10,7 @@ This mod adds the following buttons to the Yard AI panel:
 
 When approaching or clearing a switch, if the train stops on the _exit side_ of the switch, the AI will leave enough room for the other track to be used.
 
-The AI will look for switches as far as 4000 feet away, but is less precise the further away the target switch is. If it the track endsbefore it finds all the switches you asked for it will just move to the track end.
+The AI will look for switches as far as 4000 feet away, but is less precise the further away the target switch is. If it the track ends before it finds all the switches you asked for it will just move to the track end, using the existing Yard AI logic to do so safely. If it can't it can't find all the switches you asked for in the 4000 feet in front of the train, it will just move 4000 feet and stop.
 
 Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod, however if you use SmartOrders and just ask the AI to move the train "10 switches" it has the same effect as "move the train really far".
 
