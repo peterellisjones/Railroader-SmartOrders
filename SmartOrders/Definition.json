@@ -2,6 +2,8 @@
     "manifestVersion": 1,
     "id": "SmartOrders",
     "name": "SmartOrders",
-    "version": "1.1.1",
-    "assemblies": [ "SmartOrders" ]
+    "version": "1.1.2",
+    "assemblies": [
+        "SmartOrders"
+    ]
 }
