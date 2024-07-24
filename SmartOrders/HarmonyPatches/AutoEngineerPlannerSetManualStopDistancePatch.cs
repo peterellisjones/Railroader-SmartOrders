@@ -287,7 +287,10 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
             distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
         }
-        else
+        else if (SmartOrdersPlugin.Settings.UseMetersInsteadOfFeet)
+        {
+            distanceString = $"{Math.Round(distanceInMeters)}m";
+        } else
         {
             distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
         }

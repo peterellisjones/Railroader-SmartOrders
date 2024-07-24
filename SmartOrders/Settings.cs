@@ -11,4 +11,6 @@ public class Settings {
 
     public bool UseCarLengthInsteadOfFeet { get; set; }
 
+    public bool UseMetersInsteadOfFeet { get; set; }
+
 }

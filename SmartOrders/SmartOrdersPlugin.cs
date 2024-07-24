@@ -40,7 +40,9 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public void ModTabDidOpen(UIPanelBuilder builder)
     {
-        builder.AddField("Use in car lengths, not feet", builder.AddToggle(() => Settings.UseCarLengthInsteadOfFeet, o => Settings.UseCarLengthInsteadOfFeet = o)!);
+
+        builder.AddField("Use car lengths, not feet", builder.AddToggle(() => Settings.UseCarLengthInsteadOfFeet, o => Settings.UseCarLengthInsteadOfFeet = o)!);
+        builder.AddField("Use meters, not feet", builder.AddToggle(() => Settings.UseMetersInsteadOfFeet, o => Settings.UseMetersInsteadOfFeet = o)!);
         builder.AddField("Send debug logs to console", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!);
     }
 
