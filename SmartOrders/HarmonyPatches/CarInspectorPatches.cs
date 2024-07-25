@@ -11,7 +11,9 @@ using SmartOrders.AI;
 using SmartOrders.Extensions;
 using UI.Builder;
 using UI.CarInspector;
+using UI.Common;
 using UI.EngineControls;
+using UnityEngine;
 
 [PublicAPI]
 [HarmonyPatch]
@@ -19,8 +21,8 @@ using UI.EngineControls;
 public static class CarInspectorPatches {
 
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
-    public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car? ____car) {
+    [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
+    public static void PopulatePanel(UIPanelBuilder builder, Car? ____car, Window ____window) {
         if (!SmartOrdersPlugin.Shared.IsEnabled) {
             return;
         }
@@ -29,9 +31,13 @@ public static class CarInspectorPatches {
             return;
         }
 
-        var helper = new AutoEngineerOrdersHelper(____car, persistence);
-        var mode = helper.Mode();
-        if (mode != AutoEngineerMode.Yard) {
+        UpdateWindowHeight(____car, ____window);
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
+    public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car, Window ____window) {
+        if (!SmartOrdersPlugin.Shared.IsEnabled) {
             return;
         }
 
@@ -47,8 +53,20 @@ public static class CarInspectorPatches {
                 strip.AddButton("Connect Air", () => Jobs.ConnectAir(consist))!
                     .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
             }
-
         })!);
+    }
+
+    private static void UpdateWindowHeight(Car car, Window window) {
+        var persistence = new AutoEngineerPersistence(car.KeyValueObject);
+        var helper = new AutoEngineerOrdersHelper(car, persistence);
+        var mode = helper.Mode();
+
+        var size = window.GetContentSize();
+        if (mode != AutoEngineerMode.Yard) {
+            return;
+        }
+
+        window.SetContentSize(new Vector2(size.x - 2, 322 + 50));
     }
 
 }
