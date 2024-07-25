@@ -66,7 +66,7 @@ public static class CarInspectorPatches {
             return;
         }
 
-        window.SetContentSize(new Vector2(size.x - 2, 322 + 50));
+        window.SetContentSize(new Vector2(size.x - 2, 322 + 70));
     }
 
 }
