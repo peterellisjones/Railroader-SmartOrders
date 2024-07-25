@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Model.AI;
 using Model;
-using System.Reflection;
+//using System.Reflection;
 using UI.Builder;
 using UI.CarInspector;
 using Game.Messages;
@@ -15,14 +15,14 @@ namespace SmartOrders.HarmonyPatches
     [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
     public static class CarInspectorBuildContextualOrdersPatch
     {
-        static void Prefix(UIPanelBuilder builder, AutoEngineerPersistence persistence, CarInspector __instance)
+        static void Prefix(UIPanelBuilder builder, AutoEngineerPersistence persistence, CarInspector __instance, Car ____car)
         {
             if (!SmartOrdersPlugin.Shared.IsEnabled)
             {
                 return;
             }
 
-            Car _car = (Car)typeof(CarInspector).GetField("_car", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+            Car _car = ____car;//(Car)typeof(CarInspector).GetField("_car", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
             AutoEngineerOrdersHelper helper = new AutoEngineerOrdersHelper(_car as BaseLocomotive, persistence);
             AutoEngineerMode mode2 = helper.Mode();
 

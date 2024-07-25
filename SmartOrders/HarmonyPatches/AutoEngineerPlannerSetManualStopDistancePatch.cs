@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
+//using System.Reflection;
 using Core;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -13,11 +14,11 @@ using Track;
 using UnityEngine;
 
 [UsedImplicitly]
-[HarmonyPatch(typeof(AutoEngineerPlanner), "SetManualStopDistance", new Type[] { typeof(float) })]
+[HarmonyPatch]
 public static class AutoEngineerPlannerSetManualStopDistancePatch
 {
 
-    static void DebugLog(ref AutoEngineerPlanner __instance, string message)
+    public static void DebugLog(ref AutoEngineerPlanner __instance, string message)
     {
         if (!SmartOrdersPlugin.Shared.IsEnabled)
         {
@@ -32,7 +33,9 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         __instance.Say(message);
     }
 
-    static void Prefix(ref float distanceInMeters, ref AutoEngineerPlanner __instance)
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(AutoEngineerPlanner), "SetManualStopDistance", new Type[] { typeof(float) })]
+    public static void Prefix(ref float distanceInMeters, ref AutoEngineerPlanner __instance, ref BaseLocomotive ____locomotive, ref List<Car> ____coupledCarsCached, ref Orders ____orders)
     {
         if (!SmartOrdersPlugin.Shared.IsEnabled)
         {
@@ -83,13 +86,13 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         // Ensure car list is updated
         //typeof(AutoEngineerPlanner).GetMethod("UpdateCars", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(__instance, new object[] { null });
 
-        var locomotive = (BaseLocomotive)typeof(AutoEngineerPlanner).GetField("_locomotive", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+        var locomotive = ____locomotive;//(BaseLocomotive)typeof(AutoEngineerPlanner).GetField("_locomotive", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
         if (locomotive == null)
         {
             DebugLog(ref __instance, $"Error: couldn't find locomotive");
         }
 
-        var coupledCarsCached = (List<Car>)typeof(AutoEngineerPlanner).GetField("_coupledCarsCached", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+        var coupledCarsCached = ____coupledCarsCached;//(List<Car>)typeof(AutoEngineerPlanner).GetField("_coupledCarsCached", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
         if (coupledCarsCached == null)
         {
             DebugLog(ref __instance, $"Error: couldn't find coupledCarsCached");
@@ -99,14 +102,14 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
 
         DebugLog(ref __instance, $"Found locomotive {locomotive.DisplayName} with {coupledCarsCached.Count} cars");
 
-        var orders = (Orders)typeof(AutoEngineerPlanner).GetField("_orders", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
+        var orders = ____orders;//(Orders)typeof(AutoEngineerPlanner).GetField("_orders", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
 
         TrackSegment segment;
         TrackSegment.End segmentEnd;
         Location start;
 
-        // if we are stopping before the next switch the we can look forward from the logical front the train to find the next switch
-        start = (Location)typeof(AutoEngineerPlanner).GetMethod("StartLocation", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(__instance, new object[0]);
+        // if we are stopping before the next switch then we can look forward from the logical front the train to find the next switch
+        start = StartLocation(__instance);// (Location)typeof(AutoEngineerPlanner).GetMethod("StartLocation", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(__instance, new object[0]);
         if (start == null)
         {
             DebugLog(ref __instance, $"Error: couldn't find locomotive start location");
@@ -180,6 +183,8 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
                 TrackSegment switchExitSegmentB;
                 graph.DecodeSwitchAt(node, out switchEnterSegment, out switchExitSegmentA, out switchExitSegmentB);
 
+                // switchEnterSegment, switchExitSegmentA, switchExitSegmentB cannot be null here, because graph.IsSwitch(node) call above ...
+
                 // if we are coming from a switch exit, the next segment is the switch entrance
                 if (switchExitSegmentA != null && segment.id == switchExitSegmentA.id || switchExitSegmentB != null && segment.id == switchExitSegmentB.id)
                 {
@@ -204,15 +209,16 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             else
             {
                 // next segment for non-switches
-                var segmentsReachableFromArgs = new object[] {
-                    segment,
-                    segmentEnd,
-                    null,
-                    null,
-                };
-
-                typeof(Graph).GetMethod("SegmentsReachableFrom", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(graph, segmentsReachableFromArgs);
-                var segmentExitNormal = (TrackSegment)segmentsReachableFromArgs[2];
+                GraphPatches.SegmentsReachableFrom(graph, segment, segmentEnd, out var segmentExitNormal, out _);
+                //var segmentsReachableFromArgs = new object[] {
+                //    segment,
+                //    segmentEnd,
+                //    null,
+                //    null,
+                //};
+                //
+                //typeof(Graph).GetMethod("SegmentsReachableFrom", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(graph, segmentsReachableFromArgs);
+                //var segmentExitNormal = (TrackSegment)segmentsReachableFromArgs[2];
                 segment = segmentExitNormal;
             }
 
@@ -315,6 +321,13 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             __instance.Say($"{action} {distanceString}");
         }
 
+    }
+
+    [HarmonyReversePatch]
+    [HarmonyPatch(typeof(AutoEngineerPlanner), "StartLocation")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    public static Location StartLocation(AutoEngineerPlanner __instance) {
+        throw new NotImplementedException("This is a stub");
     }
 
 }
