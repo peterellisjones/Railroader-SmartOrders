@@ -109,7 +109,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
         Location start;
 
         // if we are stopping before the next switch then we can look forward from the logical front the train to find the next switch
-        start = StartLocation(__instance);// (Location)typeof(AutoEngineerPlanner).GetMethod("StartLocation", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(__instance, new object[0]);
+        start = StartLocation(locomotive, coupledCarsCached, orders.Forward);
         if (start == null)
         {
             DebugLog(ref __instance, $"Error: couldn't find locomotive start location");
@@ -288,7 +288,8 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
 
         String distanceString;
 
-        switch (SmartOrdersPlugin.Settings.MeasureType) {
+        switch (SmartOrdersPlugin.Settings.MeasureType)
+        {
             case MeasureType.Feet:
                 distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
                 break;
@@ -302,7 +303,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
+
         if (foundSwitch)
         {
             if (stopBeforeSwitch)
@@ -323,11 +324,17 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
 
     }
 
-    [HarmonyReversePatch]
-    [HarmonyPatch(typeof(AutoEngineerPlanner), "StartLocation")]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public static Location StartLocation(AutoEngineerPlanner __instance) {
-        throw new NotImplementedException("This is a stub");
+    private static Location StartLocation(BaseLocomotive locomotive, List<Car> coupledCarsCached, bool forward)
+    {
+        int logical = (int)locomotive.EndToLogical(forward ? Model.Car.End.F : Model.Car.End.R);
+        Model.Car car = coupledCarsCached[0];
+        if (logical == 0)
+        {
+            Location locationA = car.LocationA;
+            return !locationA.IsValid ? car.WheelBoundsA : locationA;
+        }
+        Location locationB = car.LocationB;
+        return (locationB.IsValid ? locationB : car.WheelBoundsB).Flipped();
     }
 
 }
