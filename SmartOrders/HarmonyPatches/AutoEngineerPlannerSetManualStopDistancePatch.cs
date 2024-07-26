@@ -326,7 +326,7 @@ public static class AutoEngineerPlannerSetManualStopDistancePatch
     [HarmonyReversePatch]
     [HarmonyPatch(typeof(AutoEngineerPlanner), "StartLocation")]
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public static Location StartLocation(AutoEngineerPlanner __instance) {
+    public static Location StartLocation(AutoEngineerPlanner __instance, bool? overrideForward = false) {
         throw new NotImplementedException("This is a stub");
     }
 
