@@ -20,10 +20,6 @@ using UnityEngine;
 public static class SmartOrdersUtility
 {
 
-    const float FEET_PER_METER = 3.28084f;
-    const float CAR_LENGTH_IN_METERS = 12.2f;
-    const float MAX_DISTANCE_IN_METERS = 4000f / FEET_PER_METER;
-
     public static void UpdateWindowHeight(Car? car, Window window)
     {
         if (car == null || !car.IsLocomotive)
@@ -86,6 +82,9 @@ public static class SmartOrdersUtility
             return null;
         }
 
+        const float FEET_PER_METER = 3.28084f;
+        const float CAR_LENGTH_IN_METERS = 12.2f;
+        const float MAX_DISTANCE_IN_METERS = 4000f / FEET_PER_METER;
 
         if (stopBeforeSwitch)
         {
@@ -148,15 +147,14 @@ public static class SmartOrdersUtility
         segmentEnd = start.EndIsA ? TrackSegment.End.B : TrackSegment.End.A;
 
         float distanceInMeters = 0;
-        float distanceOfLastFoundSwitch = 0;
 
         var switchesFound = 0;
+        var foundAllSwitches = false;
         var safetyMargin = 2; // distance to leave clear of switch
         var maxSegmentsToSearch = 50;
 
         for (var i = 0; i < maxSegmentsToSearch; i++)
         {
-
             if (i == 0)
             {
                 DebugLog($"Adding distance from start to next node {i + 2} {start.DistanceUntilEnd()}");
@@ -188,7 +186,14 @@ public static class SmartOrdersUtility
                 DebugLog($"Found next switch at {distanceInMeters}m");
 
                 switchesFound += 1;
-                distanceOfLastFoundSwitch = distanceInMeters;
+                foundAllSwitches = switchesFound >= switchesToFind;
+
+                if (foundAllSwitches)
+                {
+                    break;
+                }
+
+                // update segments if looking past switch
 
                 // for switches we need to work out which way it is going
                 graph.DecodeSwitchAt(node, out var switchEnterSegment, out var switchExitNormal, out var switchExitReverse);
@@ -215,11 +220,6 @@ public static class SmartOrdersUtility
                         segment = switchExitNormal;
                     }
                 }
-
-                if (switchesFound >= switchesToFind)
-                {
-                    break;
-                }
             }
             else
             {
@@ -238,7 +238,7 @@ public static class SmartOrdersUtility
             segmentEnd = segment.NodeForEnd(TrackSegment.End.A).id == node.id ? TrackSegment.End.B : TrackSegment.End.A;
         }
 
-        if (switchesFound >= switchesToFind)
+        if (foundAllSwitches)
         {
             var node = segment.NodeForEnd(segmentEnd);
 
@@ -252,11 +252,11 @@ public static class SmartOrdersUtility
                 if (!facingSwitchEntrance)
                 {
                     DebugLog($"Subtracting extra distance {nodeFoulingDistance} to not block other track entering switch");
-                    distanceOfLastFoundSwitch = distanceOfLastFoundSwitch - nodeFoulingDistance;
+                    distanceInMeters = distanceInMeters - nodeFoulingDistance;
                 }
                 else
                 {
-                    distanceOfLastFoundSwitch -= safetyMargin;
+                    distanceInMeters -= safetyMargin;
                 }
             }
             else
@@ -264,24 +264,23 @@ public static class SmartOrdersUtility
                 if (facingSwitchEntrance)
                 {
                     DebugLog($"Adding extra distance {nodeFoulingDistance}m to not block other track entering switch");
-                    distanceOfLastFoundSwitch = distanceOfLastFoundSwitch + nodeFoulingDistance;
+                    distanceInMeters = distanceInMeters + nodeFoulingDistance;
                 }
                 else
                 {
-                    distanceOfLastFoundSwitch += safetyMargin;
+                    distanceInMeters += safetyMargin;
                 }
 
                 // if we're not stopping before the switch, then we calculated the distance to the switch from
                 // the front of the train and therefore need to add the train length to pass the next switch
                 if (!clearSwitchesUnderTrain)
                 {
-                    distanceOfLastFoundSwitch += totalLength;
+                    distanceInMeters += totalLength;
                 }
             }
         }
 
-        // dont go the wrong way just to unblock another track
-        distanceOfLastFoundSwitch = Math.Max(0, distanceOfLastFoundSwitch);
+        distanceInMeters = Math.Max(0, distanceInMeters);
 
         var action = "Reversing";
         if (orders.Forward)
@@ -291,49 +290,41 @@ public static class SmartOrdersUtility
 
         string distanceString;
 
-        if (switchesFound > 0)
-        {
-            string distanceStr = formatDistance(distanceOfLastFoundSwitch);
-            if (stopBeforeSwitch)
-            {
-                Multiplayer.Broadcast($"{action} {distanceStr} up to switch");
-            }
-            else
-            {
-                var str = switchesToFind == 1 ? "switch" : $"{switchesFound} switches";
-
-                Multiplayer.Broadcast($"{action} {distanceStr} to clear {str}");
-            }
-        }
-        else if (switchesFound == 0)
-        {
-            var direction = "in front of";
-            if (!orders.Forward)
-            {
-                direction = "behind";
-            }
-            Multiplayer.Broadcast($"Couldn't find any switches {direction} train");
-        }
-
-        return distanceOfLastFoundSwitch;
-    }
-
-    private static string formatDistance(float distance)
-    {
         switch (SmartOrdersPlugin.Settings.MeasureType)
         {
             case MeasureType.Feet:
-                return $"{Math.Round(distance * FEET_PER_METER)}ft";
+                distanceString = $"{Math.Round(distanceInMeters * FEET_PER_METER)}ft";
+                break;
             case MeasureType.Meter:
-                return $"{Math.Round(distance)}m";
+                distanceString = $"{Math.Round(distanceInMeters)}m";
+                break;
             case MeasureType.CarLengths:
-                var carLengths = Mathf.FloorToInt(distance / CAR_LENGTH_IN_METERS);
-                return $"{carLengths} car {"length".Pluralize(carLengths)}";
-
+                var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
+                distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
+        if (foundAllSwitches)
+        {
+            if (stopBeforeSwitch)
+            {
+                Multiplayer.Broadcast($"{action} {distanceString} up to switch");
+            }
+            else
+            {
+                var str = switchesToFind == 1 ? "switch" : $"{switchesToFind} switches";
+
+                Multiplayer.Broadcast($"{action} {distanceString} to clear {str}");
+            }
+        }
+        else
+        {
+            Multiplayer.Broadcast($"{action} {distanceString}");
+        }
+
+        return distanceInMeters;
     }
 
     private static void DebugLog(string message)
