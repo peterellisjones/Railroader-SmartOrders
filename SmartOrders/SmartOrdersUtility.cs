@@ -11,11 +11,12 @@ using Game.State;
 using HarmonyLib;
 using Model;
 using Model.AI;
-using Network;
 using Track;
 using UI.Common;
 using UI.EngineControls;
 using UnityEngine;
+using Game;
+using Network.Messages;
 
 public static class SmartOrdersUtility
 {
@@ -310,18 +311,18 @@ public static class SmartOrdersUtility
         {
             if (stopBeforeSwitch)
             {
-                Multiplayer.Broadcast($"{action} {distanceString} up to switch");
+                Say($"{action} {distanceString} up to switch");
             }
             else
             {
                 var str = switchesToFind == 1 ? "switch" : $"{switchesToFind} switches";
 
-                Multiplayer.Broadcast($"{action} {distanceString} to clear {str}");
+                Say($"{action} {distanceString} to clear {str}");
             }
         }
         else
         {
-            Multiplayer.Broadcast($"{action} {distanceString}");
+            Say($"{action} {distanceString}");
         }
 
         return distanceInMeters;
@@ -329,18 +330,21 @@ public static class SmartOrdersUtility
 
     private static void DebugLog(string message)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
-        {
-            return;
-        }
-
         if (!SmartOrdersPlugin.Settings.EnableDebug)
         {
             return;
         }
 
-        Multiplayer.Broadcast(message);
+        Say(message);
     }
+
+
+    private static void Say(string message)
+    {
+        Alert alert = new Alert(AlertStyle.Console, message, TimeWeather.Now.TotalSeconds);
+        WindowManager.Shared.Present(alert);
+    }
+
 
     private static Location StartLocation(BaseLocomotive locomotive, List<Car> coupledCarsCached, bool forward)
     {
