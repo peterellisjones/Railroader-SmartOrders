@@ -8,7 +8,6 @@ This mod adds the following buttons to the Yard AI panel:
   * **Approach Ahead**: Go to the nth switch in front of the train, but do not pass the switch
   * **Clear Ahead**: Go to the nth switch in front of the train, and pass the switch so the whole train is on the other side.
   * **Clear Under**: Look for switches _under_ the train and move so that the full length of the train is passed the nth switch.
-* **Clear Ahead**: AI will pass the switch immediately ahead of the train, so the full length of the train is on the other side of the switch
 * **1, 2, 3 etc**: Use these buttons to choose how many switches to move after choosing the switch mode above.
 
 When approaching or clearing a switch, if the train stops on the _exit side_ of the switch, the AI will leave enough room for the other track to be used.
