@@ -1,6 +1,8 @@
 ﻿namespace SmartOrders.HarmonyPatches;
 
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using Game.Messages;
 using HarmonyLib;
@@ -12,79 +14,120 @@ using UI.Builder;
 using UI.CarInspector;
 using UI.Common;
 using UI.EngineControls;
+using UnityEngine;
 
 [PublicAPI]
 [HarmonyPatch]
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public static class CarInspectorPatches {
+public static class CarInspectorPatches
+{
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
-    public static void PopulatePanel(UIPanelBuilder builder, Car? ____car, Window ____window) {
-        if (!SmartOrdersPlugin.Shared.IsEnabled) {
-            return;
-        }
-
-        SmartOrdersUtility.UpdateWindowHeight(____car, ____window);
-    }
+    private static Vector2? originalWindowSize;
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
-    public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car) {
-        if (!SmartOrdersPlugin.Shared.IsEnabled) {
+    public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car, Window ____window)
+    {
+        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        {
             return;
         }
-
         var locomotive = (BaseLocomotive)____car;
         var helper = new AutoEngineerOrdersHelper(locomotive, persistence);
         var mode2 = helper.Mode();
 
-        if (mode2 != AutoEngineerMode.Yard) {
+        if (mode2 != AutoEngineerMode.Yard)
+        {
             return;
         }
 
-        builder.AddField("Switches",
+        if (originalWindowSize == null)
+        {
+            originalWindowSize = ____window.GetContentSize();
+        }
+
+        ____window.SetContentSize(new Vector2(originalWindowSize.Value.x, originalWindowSize.Value.y + 30));
+
+        Func<BaseLocomotive, string> getClearSwitchMode = (BaseLocomotive loco) =>
+        {
+            string defaultMode = "CLEAR_AHEAD";
+            var clearSwitchMode = loco.KeyValueObject.Get("CLEAR_SWITCH_MODE");
+            if (clearSwitchMode.IsNull)
+            {
+                return defaultMode;
+            }
+
+            return clearSwitchMode;
+        };
+
+        builder.AddField("Switches", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        {
+            builder.AddObserver(locomotive.KeyValueObject.Observe("CLEAR_SWITCH_MODE", delegate
+            {
+                builder.Rebuild();
+            }, callInitial: false));
+
+            builder.AddButtonSelectable("Approach ahead", getClearSwitchMode(locomotive) == "APPROACH_AHEAD", delegate
+            {
+                SmartOrdersUtility.DebugLog("updating switch mode to 'approach ahead'");
+                locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "APPROACH_AHEAD");
+            }).Tooltip("Approach Ahead", "Approach, but do not pass, the Nth switch found in front of the train. Select the number of switches to move below after enabling this mode.");
+        }));
+
+        builder.AddField("", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        {
+            builder.AddObserver(locomotive.KeyValueObject.Observe("CLEAR_SWITCH_MODE", delegate
+            {
+                builder.Rebuild();
+            }, callInitial: false));
+
+            builder.AddButtonSelectable("Clear ahead", getClearSwitchMode(locomotive) == "CLEAR_AHEAD", delegate
+            {
+                SmartOrdersUtility.DebugLog("updating switch mode to 'clear ahead'");
+                locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "CLEAR_AHEAD");
+            }).Tooltip("Approach Ahead", "Clear, the Nth switch found in front of the train. Select the number of switches to move below after enabling this mode.");
+
+            builder.AddButtonSelectable("Clear under", getClearSwitchMode(locomotive) == "CLEAR_UNDER", delegate
+            {
+                SmartOrdersUtility.DebugLog("updating switch mode to 'clear under'");
+                locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "CLEAR_UNDER");
+            }).Tooltip("Clear Under", "Clear, the Nth switch under the train. Select the number of switches to move below after enabling this mode.");
+        }));
+
+        builder.AddField("", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        {
             builder.ButtonStrip(
-                strip => {
-                    strip.AddButton("Approach Ahead", () => SmartOrdersUtility.Move(helper, 1, false, true, locomotive, persistence))!
-                        .Tooltip("Approach Ahead", "Approach, but do not pass, the first switch found in front of the train. Switches under the train are ignored.");
+                strip =>
+                {
+                    strip.AddButton("1", () => SmartOrdersUtility.Move(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                        .Tooltip("1 switch", "Move 1 switch");
 
-                    strip.AddButton("Clear Ahead", () => SmartOrdersUtility.Move(helper, 1, false, false, locomotive, persistence))!
-                        .Tooltip("Clear Ahead", "Clear the first switch found in front of the train. Switches under the train are ignored.");
-                }, 4)!
-        )!.Tooltip("AI move to switch control",
-            "Use Approach Ahead and Clear Ahead to approach or clear the first switch IN FRONT of the train. Switches under the train are ignored.\n" +
-            "Use the 1, 2, 3 etc buttons to move the train past switches in the direction travel starting from the BACK of the train. " +
-            "This includes switches that are currently UNDER the train as well as switches in front of the train");
-
-        builder.AddField("",
-            builder.ButtonStrip(
-                strip => {
-                    strip.AddButton("1", () => SmartOrdersUtility.Move(helper, 1, true, false, locomotive, persistence))!
-                        .Tooltip("Clear 1 switch", "Clear the next switch from the back of the train in the direction of travel");
-
-                    for (var i = 2; i <= 10; i++) {
+                    for (var i = 2; i <= 10; i++)
+                    {
                         var numSwitches = i;
-                        strip.AddButton($"{numSwitches}", () => SmartOrdersUtility.Move(helper, numSwitches, true, false, locomotive, persistence))!
-                            .Tooltip($"Clear {numSwitches} switches", $"Clear the next {numSwitches} switches from the back of the train in the direction of travel");
+                        strip.AddButton($"{numSwitches}", () => SmartOrdersUtility.Move(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                            .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                     }
-                }, 4)!
-        );
+                }, 4);
+        }));
 
         builder.AddField("",
-            builder.ButtonStrip(strip => {
-                var cars = locomotive.EnumerateCoupled()!.ToList()!;
+           builder.ButtonStrip(strip =>
+           {
+               var cars = locomotive.EnumerateCoupled()!.ToList()!;
 
-                if (cars.Any(c => c.air!.handbrakeApplied)) {
-                    strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(cars))!
-                        .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
-                }
+               if (cars.Any(c => c.air!.handbrakeApplied))
+               {
+                   strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(cars))!
+                       .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
+               }
 
-                if (cars.Any(c => c.EndAirSystemIssue())) {
-                    strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(cars))!
-                        .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
-                }
-            })!
+               if (cars.Any(c => c.EndAirSystemIssue()))
+               {
+                   strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(cars))!
+                       .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
+               }
+           })!
         );
     }
 

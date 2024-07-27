@@ -19,29 +19,7 @@ using Game;
 using Network.Messages;
 
 public static class SmartOrdersUtility
-{
-
-    public static void UpdateWindowHeight(Car? car, Window window)
-    {
-        if (car == null || !car.IsLocomotive)
-        {
-            return;
-        }
-
-        var persistence = new AutoEngineerPersistence(car.KeyValueObject);
-        var helper = new AutoEngineerOrdersHelper(car, persistence);
-        var mode = helper.Mode();
-
-        var size = window.GetContentSize();
-        if (mode != AutoEngineerMode.Yard)
-        {
-            return;
-        }
-
-        window.SetContentSize(new Vector2(size.x - 2, 322 + 70));
-    }
-
-    public static void ConnectAir(List<Car> consist)
+{    public static void ConnectAir(List<Car> consist)
     {
         foreach (var car in consist)
         {
@@ -67,12 +45,37 @@ public static class SmartOrdersUtility
         consist.Do(c => c.SetHandbrake(false));
     }
 
-    public static void Move(AutoEngineerOrdersHelper helper, int switchesToFind, bool clearSwitchesUnderTrain, bool stopBeforeSwitch, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
+    public static void Move(AutoEngineerOrdersHelper helper, int switchesToFind, KeyValue.Runtime.Value mode, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
     {
+        bool clearSwitchesUnderTrain = false;
+        bool stopBeforeSwitch = false;
+
+
+
+        if (mode.IsNull)
+        {
+            mode = "CLEAR_AHEAD";
+        }
+
+        if (mode == "CLEAR_UNDER")
+        {
+            clearSwitchesUnderTrain = true;
+        }
+        else if (mode == "APPROACH_AHEAD")
+        {
+            stopBeforeSwitch = true;
+        }
+
+        DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
+
         var distanceInMeters = GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence);
         if (distanceInMeters != null)
         {
             helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, distanceInMeters!);
+        }
+        else
+        {
+            DebugLog("ERROR: distanceInMeters is null");
         }
     }
 
@@ -85,7 +88,7 @@ public static class SmartOrdersUtility
 
         const float FEET_PER_METER = 3.28084f;
         const float CAR_LENGTH_IN_METERS = 12.2f;
-        const float MAX_DISTANCE_IN_METERS = 4000f / FEET_PER_METER;
+        const float MAX_DISTANCE_IN_METERS = 10000f / FEET_PER_METER;
 
         if (stopBeforeSwitch)
         {
@@ -180,7 +183,6 @@ public static class SmartOrdersUtility
                 DebugLog("Next node is null");
                 break;
             }
-
 
             if (graph.IsSwitch(node))
             {
@@ -328,7 +330,7 @@ public static class SmartOrdersUtility
         return distanceInMeters;
     }
 
-    private static void DebugLog(string message)
+    public static void DebugLog(string message)
     {
         if (!SmartOrdersPlugin.Settings.EnableDebug)
         {
