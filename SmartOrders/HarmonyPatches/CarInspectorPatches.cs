@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using CarInspectorResizer.Behaviors;
 using Game.Messages;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -19,15 +20,16 @@ using UI.EngineControls;
 public static class CarInspectorPatches {
 
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
-    public static void PopulatePanel(UIPanelBuilder builder, Car? ____car, Window ____window) {
+    [HarmonyPatch(typeof(CarInspector), "Awake")]
+    public static void Awake(ref Window ____window) {
         if (!SmartOrdersPlugin.Shared.IsEnabled) {
             return;
         }
 
-        SmartOrdersUtility.UpdateWindowHeight(____car, ____window);
+        var windowAutoHeight = ____window.gameObject!.GetComponent<CarInspectorAutoHeightBehavior>()!;
+        windowAutoHeight.ExpandOrders(AutoEngineerMode.Yard, 70);
     }
-
+    
     [HarmonyPostfix]
     [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
     public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car) {

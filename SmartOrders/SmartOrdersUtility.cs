@@ -20,27 +20,6 @@ using Network.Messages;
 
 public static class SmartOrdersUtility
 {
-
-    public static void UpdateWindowHeight(Car? car, Window window)
-    {
-        if (car == null || !car.IsLocomotive)
-        {
-            return;
-        }
-
-        var persistence = new AutoEngineerPersistence(car.KeyValueObject);
-        var helper = new AutoEngineerOrdersHelper(car, persistence);
-        var mode = helper.Mode();
-
-        var size = window.GetContentSize();
-        if (mode != AutoEngineerMode.Yard)
-        {
-            return;
-        }
-
-        window.SetContentSize(new Vector2(size.x - 2, 322 + 70));
-    }
-
     public static void ConnectAir(List<Car> consist)
     {
         foreach (var car in consist)
