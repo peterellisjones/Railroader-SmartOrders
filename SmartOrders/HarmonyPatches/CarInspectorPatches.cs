@@ -46,8 +46,7 @@ public static class CarInspectorPatches
                 originalWindowSize = ____window.GetContentSize();
             }
 
-            const float ADDITIONAL_WINDOW_HEIGHT_NEEDED = 100;
-            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x, originalWindowSize.Value.y + ADDITIONAL_WINDOW_HEIGHT_NEEDED));
+            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x, 424));
 
             BuildwitchYardAIButtons(builder, locomotive, persistence, helper);
         }
@@ -129,16 +128,16 @@ public static class CarInspectorPatches
             builder.ButtonStrip(
             strip =>
             {
-                    strip.AddButton("1", () => SmartOrdersUtility.Move(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
-                        .Tooltip("1 switch", "Move 1 switch");
+                strip.AddButton("1", () => SmartOrdersUtility.Move(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                    .Tooltip("1 switch", "Move 1 switch");
 
-                    for (var i = 2; i <= 10; i++)
-                    {
+                for (var i = 2; i <= 10; i++)
+                {
                     var numSwitches = i;
-                        strip.AddButton($"{numSwitches}", () => SmartOrdersUtility.Move(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
-                            .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
-                    }
-                }, 4);
+                    strip.AddButton($"{numSwitches}", () => SmartOrdersUtility.Move(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                        .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
+                }
+            }, 4);
         }));
     }
 
