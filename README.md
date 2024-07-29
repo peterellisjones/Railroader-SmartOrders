@@ -16,6 +16,11 @@ The AI will look for switches as far as 10,000 feet away, but is less precise th
 
 Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod, however if you use SmartOrders and just ask the AI to move the train "10 switches" it has the same effect as "move the train really far".
 
+### Other features:
+
+* This mods adds an "infinity car lengths" button to the Yard AI "move X car lenths" buttons, for when you just want the AI to couple to something a very long way away.
+* Adds "release handbrakes" and "couple air" helper buttons
+
 Example usage:
 
 You have a train stopped in Parson's Tannery P3 and need to get back to the mainline. There are seven switches between Parson's Tannery P3 and the mainline, so you press the **7** button and the AI magically brings the entire train back to the mainline stopping just beyond the last switch.
