@@ -2,9 +2,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using Game.Messages;
 using HarmonyLib;
@@ -48,11 +46,51 @@ public static class CarInspectorPatches
 
             ____window.SetContentSize(new Vector2(originalWindowSize.Value.x, 424));
 
+            BuildAlternateCarLengthsButtons(builder, helper);
             BuildwitchYardAIButtons(builder, locomotive, persistence, helper);
         }
 
+        builder.AddExpandingVerticalSpacer();
         BuildHandbrakeAndAirHelperButons(builder, locomotive);
+    }
 
+    private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, AutoEngineerOrdersHelper helper)
+    {
+        builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        {
+            builder.AddButton("Stop", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 0f);
+            });
+            builder.AddButton("½", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 6.1f);
+            });
+            builder.AddButton("1", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 12.2f);
+            });
+            builder.AddButton("2", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 24.4f);
+            });
+            builder.AddButton("5", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 61f);
+            });
+            builder.AddButton("10", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 122f);
+            });
+            builder.AddButton("20", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 244f);
+            });
+            builder.AddButton("inf", delegate
+            {
+                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 12.192f * 1_000_000.5f);
+            }).Tooltip("INF", "Move infinity car lengths");
+        }, 4));
     }
 
     private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)

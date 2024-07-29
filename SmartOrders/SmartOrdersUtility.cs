@@ -50,8 +50,6 @@ public static class SmartOrdersUtility
         bool clearSwitchesUnderTrain = false;
         bool stopBeforeSwitch = false;
 
-
-
         if (mode.IsNull)
         {
             mode = "CLEAR_AHEAD";
@@ -87,7 +85,7 @@ public static class SmartOrdersUtility
         }
 
         const float FEET_PER_METER = 3.28084f;
-        const float CAR_LENGTH_IN_METERS = 12.2f;
+        const float CAR_LENGTH_IN_METERS = 12.192f;
         const float MAX_DISTANCE_IN_METERS = 10000f / FEET_PER_METER;
 
         if (stopBeforeSwitch)
