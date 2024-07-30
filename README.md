@@ -22,6 +22,12 @@ You have a train stopped in Parson's Tannery P3 and need to get back to the main
 
 If you find this mod useful you might like **[SwitchToDestination](https://github.com/peterellisjones/Railroader-SwitchToDestination)** and **[FlyShuntUI](https://github.com/peterellisjones/Railroader-FlyShuntUI)** as well
 
+### Additional QoL features:
+
+* This mods adds an "infinity car lengths" button to the Yard AI "move X car lenths" buttons, for when you just want the AI to couple to something a very long way away.
+* Adds "release handbrakes" and "couple air" helper buttons
+
+
 ## Installation
 
 * Download `SmartOrders-VERSION.Railloader.zip` from the releases page
