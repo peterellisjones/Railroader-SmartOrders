@@ -49,10 +49,26 @@ public static class CarInspectorPatches
 
             BuildAlternateCarLengthsButtons(builder, locomotive, helper);
             BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
+
+            builder.AddExpandingVerticalSpacer();
         }
 
-        builder.AddExpandingVerticalSpacer();
-        //BuildHandbrakeAndAirHelperButons(builder, locomotive);
+        if (mode2 == AutoEngineerMode.Road)
+        {
+            // Ensure default value for allow coupling in road mode is false;
+            if (locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").IsNull)
+            {
+                locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", false);
+            }
+
+            builder.AddField("Allow coupling", builder.AddToggle(() =>
+            {
+                return locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").BoolValue;
+            }, delegate (bool enabled)
+            {
+                locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", enabled);
+            })).Tooltip("Allow coupling with cars in front", "If enabled the AI will couple to cars in front. If disabled the AI will stop before cars in front");
+        }
     }
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
@@ -93,28 +109,6 @@ public static class CarInspectorPatches
             }).Tooltip("INF", "Move infinity car lengths");
         }, 4));
     }
-
-    //private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
-    //{
-    //    builder.AddField("",
-    //      builder.ButtonStrip(strip =>
-    //      {
-    //          var cars = locomotive.EnumerateCoupled()!.ToList()!;
-
-    //          if (cars.Any(c => c.air!.handbrakeApplied))
-    //          {
-    //              strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(cars))!
-    //                  .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
-    //          }
-
-    //          if (cars.Any(c => c.EndAirSystemIssue()))
-    //          {
-    //              strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(cars))!
-    //                  .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
-    //          }
-    //      })!
-    //   );
-    //}
 
     private static void BuildSwitchYardAIButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {

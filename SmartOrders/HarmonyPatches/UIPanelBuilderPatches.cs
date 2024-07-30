@@ -24,7 +24,6 @@ public static class UIPanelBuilderPatches
         }
 
         cancelNextButtonStrip = label == "Direction";
-
         cancelNextExpandingVerticalSpacer = label == "Car Lengths";
 
         // Don't let the base game add the car lengths buttons, because this mod has another implementation
