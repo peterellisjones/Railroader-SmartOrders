@@ -19,15 +19,13 @@ using Game;
 using Network.Messages;
 
 public static class SmartOrdersUtility
-{    public static void ConnectAir(List<Car> consist)
+{    public static void ConnectAir(BaseLocomotive locomotive)
     {
-        foreach (var car in consist)
+        locomotive.EnumerateCoupled().Do(car =>
         {
             ConnectAirCore(car, Car.LogicalEnd.A);
             ConnectAirCore(car, Car.LogicalEnd.B);
-        }
-
-        return;
+        });
 
         static void ConnectAirCore(Car car, Car.LogicalEnd end)
         {
@@ -40,44 +38,12 @@ public static class SmartOrdersUtility
         }
     }
 
-    public static void ReleaseAllHandbrakes(List<Car> consist)
+    public static void ReleaseAllHandbrakes(BaseLocomotive locomotive)
     {
-        consist.Do(c => c.SetHandbrake(false));
+         locomotive.EnumerateCoupled().Do(c => c.SetHandbrake(false));
     }
 
-    public static void Move(AutoEngineerOrdersHelper helper, int switchesToFind, KeyValue.Runtime.Value mode, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
-    {
-        bool clearSwitchesUnderTrain = false;
-        bool stopBeforeSwitch = false;
-
-        if (mode.IsNull)
-        {
-            mode = "CLEAR_AHEAD";
-        }
-
-        if (mode == "CLEAR_UNDER")
-        {
-            clearSwitchesUnderTrain = true;
-        }
-        else if (mode == "APPROACH_AHEAD")
-        {
-            stopBeforeSwitch = true;
-        }
-
-        DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
-
-        var distanceInMeters = GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence);
-        if (distanceInMeters != null)
-        {
-            helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, distanceInMeters!);
-        }
-        else
-        {
-            DebugLog("ERROR: distanceInMeters is null");
-        }
-    }
-
-    private static float? GetDistanceForSwitchOrder(int switchesToFind, bool clearSwitchesUnderTrain, bool stopBeforeSwitch, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
+    public static float? GetDistanceForSwitchOrder(int switchesToFind, bool clearSwitchesUnderTrain, bool stopBeforeSwitch, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
     {
         if (!SmartOrdersPlugin.Shared.IsEnabled)
         {

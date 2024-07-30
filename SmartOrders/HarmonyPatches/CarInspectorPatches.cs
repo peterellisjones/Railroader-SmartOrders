@@ -15,6 +15,7 @@ using UI.CarInspector;
 using UI.Common;
 using UI.EngineControls;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [PublicAPI]
 [HarmonyPatch]
@@ -44,78 +45,78 @@ public static class CarInspectorPatches
                 originalWindowSize = ____window.GetContentSize();
             }
 
-            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x, 424));
+            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x - 2, 400));
 
-            BuildAlternateCarLengthsButtons(builder, helper);
-            BuildwitchYardAIButtons(builder, locomotive, persistence, helper);
+            BuildAlternateCarLengthsButtons(builder, locomotive, helper);
+            BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
         }
 
         builder.AddExpandingVerticalSpacer();
-        BuildHandbrakeAndAirHelperButons(builder, locomotive);
+        //BuildHandbrakeAndAirHelperButons(builder, locomotive);
     }
 
-    private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, AutoEngineerOrdersHelper helper)
+    private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
     {
         builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddButton("Stop", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 0f);
+                MoveDistance(helper, locomotive, 0f);
             });
             builder.AddButton("½", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 6.1f);
+                MoveDistance(helper,locomotive, 6.1f);
             });
             builder.AddButton("1", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 12.2f);
+                MoveDistance(helper,locomotive, 12.2f);
             });
             builder.AddButton("2", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 24.4f);
+                MoveDistance(helper,locomotive, 24.4f);
             });
             builder.AddButton("5", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 61f);
+                MoveDistance(helper,locomotive, 61f);
             });
             builder.AddButton("10", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 122f);
+                MoveDistance(helper,locomotive, 122f);
             });
             builder.AddButton("20", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 244f);
+                MoveDistance(helper,locomotive, 244f);
             });
             builder.AddButton("inf", delegate
             {
-                helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, 12.192f * 1_000_000.5f);
+                MoveDistance(helper,locomotive, 12.192f * 1_000_000.5f);
             }).Tooltip("INF", "Move infinity car lengths");
         }, 4));
     }
 
-    private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
-    {
-        builder.AddField("",
-          builder.ButtonStrip(strip =>
-          {
-              var cars = locomotive.EnumerateCoupled()!.ToList()!;
+    //private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
+    //{
+    //    builder.AddField("",
+    //      builder.ButtonStrip(strip =>
+    //      {
+    //          var cars = locomotive.EnumerateCoupled()!.ToList()!;
 
-              if (cars.Any(c => c.air!.handbrakeApplied))
-              {
-                  strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(cars))!
-                      .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
-              }
+    //          if (cars.Any(c => c.air!.handbrakeApplied))
+    //          {
+    //              strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(cars))!
+    //                  .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
+    //          }
 
-              if (cars.Any(c => c.EndAirSystemIssue()))
-              {
-                  strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(cars))!
-                      .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
-              }
-          })!
-       );
-    }
+    //          if (cars.Any(c => c.EndAirSystemIssue()))
+    //          {
+    //              strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(cars))!
+    //                  .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
+    //          }
+    //      })!
+    //   );
+    //}
 
-    private static void BuildwitchYardAIButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
+    private static void BuildSwitchYardAIButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
         Func<BaseLocomotive, string> getClearSwitchMode = (BaseLocomotive loco) =>
         {
@@ -166,17 +167,63 @@ public static class CarInspectorPatches
             builder.ButtonStrip(
             strip =>
             {
-                strip.AddButton("1", () => SmartOrdersUtility.Move(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                strip.AddButton("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                     .Tooltip("1 switch", "Move 1 switch");
 
                 for (var i = 2; i <= 10; i++)
                 {
                     var numSwitches = i;
-                    strip.AddButton($"{numSwitches}", () => SmartOrdersUtility.Move(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                    strip.AddButton($"{numSwitches}", () => MovePastSwitches(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
                         .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                 }
             }, 4);
         }));
     }
 
+    private static void MoveDistance(AutoEngineerOrdersHelper helper, BaseLocomotive locomotive, float distance)
+    {
+        if (SmartOrdersPlugin.Settings.AutoSwitchOffHanbrake)
+        {
+            SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
+        }
+
+        if (SmartOrdersPlugin.Settings.AutoCoupleAir)
+        {
+            SmartOrdersUtility.ConnectAir(locomotive);
+        }
+
+        helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, distance);
+    }
+
+    private static void MovePastSwitches(AutoEngineerOrdersHelper helper, int switchesToFind, KeyValue.Runtime.Value mode, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
+    {
+        bool clearSwitchesUnderTrain = false;
+        bool stopBeforeSwitch = false;
+
+        if (mode.IsNull)
+        {
+            mode = "CLEAR_AHEAD";
+        }
+
+        if (mode == "CLEAR_UNDER")
+        {
+            clearSwitchesUnderTrain = true;
+        }
+        else if (mode == "APPROACH_AHEAD")
+        {
+            stopBeforeSwitch = true;
+        }
+
+        SmartOrdersUtility.DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
+
+        var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence);
+        if (distanceInMeters != null)
+        {
+            MoveDistance(helper, locomotive, distanceInMeters.Value);
+        }
+        else
+        {
+            SmartOrdersUtility.DebugLog("ERROR: distanceInMeters is null");
+        }
+    }
 }
