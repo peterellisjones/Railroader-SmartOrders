@@ -19,8 +19,10 @@ using Game;
 using Network.Messages;
 
 public static class SmartOrdersUtility
-{    public static void ConnectAir(BaseLocomotive locomotive)
+{
+    public static void ConnectAir(BaseLocomotive locomotive)
     {
+        DebugLog("Checking air");
         locomotive.EnumerateCoupled().Do(car =>
         {
             ConnectAirCore(car, Car.LogicalEnd.A);
@@ -29,18 +31,22 @@ public static class SmartOrdersUtility
 
         static void ConnectAirCore(Car car, Car.LogicalEnd end)
         {
-            StateManager.ApplyLocal(new PropertyChange(car.id, CarPatches.KeyValueKeyFor(Car.EndGearStateKey.Anglecock, car.LogicalToEnd(end)), new FloatPropertyValue(car[end].IsCoupled ? 1f : 0f)));
-
-            if (car.TryGetAdjacentCar(end, out var car2))
+            if (car[end].IsCoupled)
             {
-                StateManager.ApplyLocal(new SetGladhandsConnected(car.id, car2.id, true));
+                StateManager.ApplyLocal(new PropertyChange(car.id, CarPatches.KeyValueKeyFor(Car.EndGearStateKey.Anglecock, car.LogicalToEnd(end)), new FloatPropertyValue(car[end].IsCoupled ? 1f : 0f)));
+
+                if (car.TryGetAdjacentCar(end, out var car2))
+                {
+                    StateManager.ApplyLocal(new SetGladhandsConnected(car.id, car2.id, true));
+                }
             }
         }
     }
 
     public static void ReleaseAllHandbrakes(BaseLocomotive locomotive)
     {
-         locomotive.EnumerateCoupled().Do(c => c.SetHandbrake(false));
+        DebugLog("Checking handbrakes");
+        locomotive.EnumerateCoupled().Do(c => c.SetHandbrake(false));
     }
 
     public static float? GetDistanceForSwitchOrder(int switchesToFind, bool clearSwitchesUnderTrain, bool stopBeforeSwitch, BaseLocomotive locomotive, AutoEngineerPersistence persistence)

@@ -13,7 +13,6 @@ public static class AutoEngineerOrdersExtensionsPatches
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AutoEngineerOrdersExtensions), "MaxSpeedMph")]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static void MaxSpeedMph(this AutoEngineerMode mode, ref int __result)
     {
         __result = mode switch

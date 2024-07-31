@@ -12,7 +12,6 @@ public static class CarPatches {
 
     [HarmonyReversePatch]
     [HarmonyPatch(typeof(Car), "KeyValueKeyFor")]
-    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     public static string KeyValueKeyFor(Car.EndGearStateKey key, Car.End end) {
         throw new NotImplementedException("It's a stub");
     }

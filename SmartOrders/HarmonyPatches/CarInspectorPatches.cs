@@ -1,9 +1,7 @@
 ﻿namespace SmartOrders.HarmonyPatches;
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using Game.Messages;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -19,7 +17,6 @@ using UnityEngine.Rendering;
 
 [PublicAPI]
 [HarmonyPatch]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 public static class CarInspectorPatches
 {
 
@@ -45,7 +42,7 @@ public static class CarInspectorPatches
                 originalWindowSize = ____window.GetContentSize();
             }
 
-            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x - 2, 400));
+            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x - 2, 424));
 
             BuildAlternateCarLengthsButtons(builder, locomotive, helper);
             BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
@@ -69,6 +66,8 @@ public static class CarInspectorPatches
                 locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", enabled);
             })).Tooltip("Allow coupling with cars in front", "If enabled the AI will couple to cars in front. If disabled the AI will stop before cars in front");
         }
+
+        BuildHandbrakeAndAirHelperButons(builder, locomotive);
     }
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
@@ -81,33 +80,55 @@ public static class CarInspectorPatches
             });
             builder.AddButton("½", delegate
             {
-                MoveDistance(helper,locomotive, 6.1f);
+                MoveDistance(helper, locomotive, 6.1f);
             });
             builder.AddButton("1", delegate
             {
-                MoveDistance(helper,locomotive, 12.2f);
+                MoveDistance(helper, locomotive, 12.2f);
             });
             builder.AddButton("2", delegate
             {
-                MoveDistance(helper,locomotive, 24.4f);
+                MoveDistance(helper, locomotive, 24.4f);
             });
             builder.AddButton("5", delegate
             {
-                MoveDistance(helper,locomotive, 61f);
+                MoveDistance(helper, locomotive, 61f);
             });
             builder.AddButton("10", delegate
             {
-                MoveDistance(helper,locomotive, 122f);
+                MoveDistance(helper, locomotive, 122f);
             });
             builder.AddButton("20", delegate
             {
-                MoveDistance(helper,locomotive, 244f);
+                MoveDistance(helper, locomotive, 244f);
             });
             builder.AddButton("inf", delegate
             {
-                MoveDistance(helper,locomotive, 12.192f * 1_000_000.5f);
+                MoveDistance(helper, locomotive, 12.192f * 1_000_000.5f);
             }).Tooltip("INF", "Move infinity car lengths");
         }, 4));
+    }
+
+    private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
+    {
+        builder.AddField("",
+          builder.ButtonStrip(strip =>
+          {
+              var cars = locomotive.EnumerateCoupled()!.ToList()!;
+
+              if (cars.Any(c => c.air!.handbrakeApplied))
+              {
+                  strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(locomotive))!
+                      .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
+              }
+
+              if (cars.Any(c => c.EndAirSystemIssue()))
+              {
+                  strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(locomotive))!
+                      .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
+              }
+          })!
+       );
     }
 
     private static void BuildSwitchYardAIButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
@@ -176,16 +197,6 @@ public static class CarInspectorPatches
 
     private static void MoveDistance(AutoEngineerOrdersHelper helper, BaseLocomotive locomotive, float distance)
     {
-        if (SmartOrdersPlugin.Settings.AutoSwitchOffHanbrake)
-        {
-            SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
-        }
-
-        if (SmartOrdersPlugin.Settings.AutoCoupleAir)
-        {
-            SmartOrdersUtility.ConnectAir(locomotive);
-        }
-
         helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, distance);
     }
 
