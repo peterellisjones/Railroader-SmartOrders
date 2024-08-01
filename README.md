@@ -14,7 +14,7 @@ When approaching or clearing a switch, if the train stops on the _exit side_ of 
 
 The AI will look for switches as far as 10,000 feet away, but is less precise the further away the target switch is. If the track ends before it finds all the switches you asked for it will just move to the track end, using the existing Yard AI logic to do so safely. If it can't can't find all the switches you asked for in the 10,000 feet in front of the train, it will just move 10,000 feet and stop.
 
-Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod, however if you use SmartOrders and just ask the AI to move the train "10 switches" it has the same effect as "move the train really far".
+Known incompatability: Unfortunately this mod is **not** compatible with wexp's [RR-YardAiExtended](https://github.com/wexp/RR-YardAiExtended) mod, however SmartOrders adds a Yard AI car lengths button to go "infinity car langths", which you can use if you just need to couple to something really far away. See below for other quality of life features this mod adds.
 
 Example usage:
 
@@ -22,7 +22,7 @@ You have a train stopped in Parson's Tannery P3 and need to get back to the main
 
 If you find this mod useful you might like **[SwitchToDestination](https://github.com/peterellisjones/Railroader-SwitchToDestination)** and **[FlyShuntUI](https://github.com/peterellisjones/Railroader-FlyShuntUI)** as well
 
-### Additional QoL features:
+### Additional Quality of Life (QoL) Features:
 
 * This mods adds an "infinity car lengths" button to the Yard AI "move X car lengths" buttons, for when you just want the AI to couple to something a very long way away.
 * In the settings you can allow the Yard AI to automatically release handbrakes before moving
