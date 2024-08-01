@@ -29,6 +29,11 @@ public static class CarPatches {
             return;
         }
 
+        if (!SmartOrdersPlugin.Settings.AutoApplyHandbrake)
+        {
+            return;
+        }
+
         if (endGearStateKey != EndGearStateKey.IsCoupled)
         {
             return;
