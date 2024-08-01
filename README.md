@@ -27,7 +27,8 @@ If you find this mod useful you might like **[SwitchToDestination](https://githu
 * This mods adds an "infinity car lengths" button to the Yard AI "move X car lenths" buttons, for when you just want the AI to couple to something a very long way away.
 * In the settings you can allow the Yard AI to automatically release handbrakes before moving
 * In the settings you can allow the Yard AI to automatically connect air before moving
-* In Road AI mode, there is a checkbox to allow the road AI to couple to cars in front, rather than stop before cars. 
+* There is setting to automatically apply the handbrake to stationary cars after decoupling
+* In Road AI mode, there is a checkbox to allow the road AI to couple to cars in front, rather than stop before cars.
 
 
 ## Installation

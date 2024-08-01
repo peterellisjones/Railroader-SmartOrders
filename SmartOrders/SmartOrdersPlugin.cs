@@ -47,7 +47,10 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
             builder.Rebuild();
         })!);
 
-        builder.AddField("Release handbrakes", builder.AddToggle(() => Settings.AutoSwitchOffHanbrake, o => Settings.AutoSwitchOffHanbrake = o)!)
+        builder.AddField("Apply handbrakes", builder.AddToggle(() => Settings.AutoApplyHandbrake, o => Settings.AutoApplyHandbrake = o)!)
+                .Tooltip("Apply handbrakes", "When decoupling stationary cars, set the handbrake in the first car");
+
+        builder.AddField("Release handbrakes", builder.AddToggle(() => Settings.AutoReleaseHandbrake, o => Settings.AutoReleaseHandbrake = o)!)
                 .Tooltip("Release handbrakes", "In Yard mode, automatically release the handbrakes for any cars in the train before moving");
 
         builder.AddField("Couple air", builder.AddToggle(() => Settings.AutoCoupleAir, o => Settings.AutoCoupleAir = o)!)

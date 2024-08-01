@@ -18,7 +18,7 @@ public static class AutoEngineerOrderHelperPatches
             return;
         }
 
-        if (SmartOrdersPlugin.Settings.AutoSwitchOffHanbrake)
+        if (SmartOrdersPlugin.Settings.AutoReleaseHandbrake)
         {
             SmartOrdersUtility.ReleaseAllHandbrakes(____locomotive);
         }

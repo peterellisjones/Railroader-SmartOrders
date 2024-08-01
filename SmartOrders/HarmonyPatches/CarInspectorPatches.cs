@@ -1,12 +1,15 @@
 ﻿namespace SmartOrders.HarmonyPatches;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Game.Messages;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
 using Model.AI;
+using Model.OpsNew;
 using SmartOrders.Extensions;
 using UI.Builder;
 using UI.CarInspector;
@@ -14,6 +17,7 @@ using UI.Common;
 using UI.EngineControls;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static Model.Car;
 
 [PublicAPI]
 [HarmonyPatch]
@@ -46,28 +50,34 @@ public static class CarInspectorPatches
 
             BuildAlternateCarLengthsButtons(builder, locomotive, helper);
             BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
-
-            builder.AddExpandingVerticalSpacer();
         }
+
+        // BuildDisconnectCarsButtons(builder, locomotive, persistence, helper);
 
         if (mode2 == AutoEngineerMode.Road)
         {
-            // Ensure default value for allow coupling in road mode is false;
-            if (locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").IsNull)
-            {
-                locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", false);
-            }
-
-            builder.AddField("Allow coupling", builder.AddToggle(() =>
-            {
-                return locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").BoolValue;
-            }, delegate (bool enabled)
-            {
-                locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", enabled);
-            })).Tooltip("Allow coupling with cars in front", "If enabled the AI will couple to cars in front. If disabled the AI will stop before cars in front");
+            BuildRoadModeCouplingButton(builder, locomotive);
         }
 
         BuildHandbrakeAndAirHelperButons(builder, locomotive);
+    }
+
+    private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
+    {
+
+        // Ensure default value for allow coupling in road mode is false;
+        if (locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").IsNull)
+        {
+            locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", false);
+        }
+
+        builder.AddField("Allow coupling", builder.AddToggle(() =>
+        {
+            return locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").BoolValue;
+        }, delegate (bool enabled)
+        {
+            locomotive.KeyValueObject.Set("ALLOW_COUPLING_IN_ROAD_MODE", enabled);
+        })).Tooltip("Allow coupling with cars in front", "If enabled the AI will couple to cars in front. If disabled the AI will stop before cars in front");
     }
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
@@ -230,5 +240,55 @@ public static class CarInspectorPatches
         {
             SmartOrdersUtility.DebugLog("ERROR: distanceInMeters is null");
         }
+    }
+
+    // Not currently used but could be added if we want to merge FlyShuntUI into SmartOrders
+    static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
+    {
+        AutoEngineerMode mode2 = helper.Mode();
+
+        builder.AddField("Disconnect", builder.ButtonStrip(delegate (UIPanelBuilder bldr)
+        {
+            bldr.AddButton("All", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, -999, persistence);
+            }).Tooltip("Disconnect all cars with waybills from the back", "Disconnect all cars with waybills from the back");
+
+            bldr.AddButton("-3", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, -3, persistence);
+            }).Tooltip("Disconnect 3 Car Groups From Back", "Disconnect 3 groups of cars from the back that are headed to 3 different locations");
+
+            bldr.AddButton("-2", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, -2, persistence);
+            }).Tooltip("Disconnect 2 Car Groups From Back", "Disconnect 2 groups of cars from the back that are headed to 2 different locations");
+
+            bldr.AddButton("-1", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, -1, persistence);
+            }).Tooltip("Disconnect 1 Car Group From Back", "Disconnect all cars from the back of the train headed to the same location");
+
+            bldr.AddButton("1", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, 1, persistence);
+            }).Tooltip("Disconnect 1 Car Group From Front", "Disconnect all cars from the front of the train headed to the same location");
+
+            bldr.AddButton("2", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, 2, persistence);
+            }).Tooltip("Disconnect 2 Car Groups From Front", "Disconnect 2 groups of cars from the front that are headed to 2 different locations");
+
+            bldr.AddButton("3", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, 3, persistence);
+            }).Tooltip("Disconnect 3 Car Groups From Front", "Disconnect 3 groups of cars from the front that are headed to 3 different locations");
+
+            bldr.AddButton("All", delegate
+            {
+                SmartOrdersUtility.DisconnectCarGroups(locomotive, 999, persistence);
+            }).Tooltip("Disconnect all cars with waybills from the front", "Disconnect all cars with waybills from the front");
+
+        }, 4)).Tooltip("Disconnect Car Groups", "Disconnect groups of cars headed for the same location from the front (positive numbers) or the back (negative numbers) in the direction of travel");
     }
 }
