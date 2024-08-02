@@ -184,6 +184,12 @@ public static class CarInspectorPatches
                 SmartOrdersUtility.DebugLog("updating switch mode to 'clear under'");
                 locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "CLEAR_UNDER");
             }).Height(60).Tooltip("Clear Under", "Clear switches under the train. Choose the number of switches below");
+
+            builder.AddButtonSelectable("<sprite name=Destination>", getClearSwitchMode(locomotive) == "SHOW_SWITCH", delegate
+            {
+                SmartOrdersUtility.DebugLog("updating switch mode to 'show switch'");
+                locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "SHOW_SWITCH");
+            }).Tooltip("Show me Switch", "Moves camera to target switch");
         })).Height(60);
 
 
@@ -214,6 +220,7 @@ public static class CarInspectorPatches
     {
         bool clearSwitchesUnderTrain = false;
         bool stopBeforeSwitch = false;
+        bool showSwitch = false;
 
         if (mode.IsNull)
         {
@@ -227,11 +234,17 @@ public static class CarInspectorPatches
         else if (mode == "APPROACH_AHEAD")
         {
             stopBeforeSwitch = true;
+        } else if (mode == "SHOW_SWITCH") {
+            showSwitch = true;
         }
 
         SmartOrdersUtility.DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
 
-        var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence);
+        var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence, out var targetSwitch);
+        if (showSwitch && targetSwitch != null) {
+            SmartOrdersUtility.MoveCameraToNode(targetSwitch);
+            return;
+        }
         if (distanceInMeters != null)
         {
             MoveDistance(helper, locomotive, distanceInMeters.Value);

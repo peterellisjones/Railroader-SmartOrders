@@ -1,3 +1,6 @@
+using SmartOrders.Helpers;
+using UnityEngine;
+
 namespace SmartOrders;
 
 using System;
@@ -16,6 +19,8 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
     public static IUIHelper UiHelper { get; private set; } = null!;
     public static Settings Settings { get; private set; }
 
+    public static TrackNodeHelper TrackNodeHelper { get; private set; }
+
     private readonly ILogger _Logger = Log.ForContext<SmartOrdersPlugin>()!;
 
     public SmartOrdersPlugin(IModdingContext context, IUIHelper uiHelper)
@@ -31,6 +36,9 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
         _Logger.Information("OnEnable");
         var harmony = new Harmony("SmartOrders");
         harmony.PatchAll();
+
+        var go = new GameObject();
+        TrackNodeHelper = go.AddComponent<TrackNodeHelper>()!;
     }
 
     public override void OnDisable()
@@ -38,6 +46,9 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
         _Logger.Information("OnDisable");
         var harmony = new Harmony("SmartOrders");
         harmony.UnpatchAll();
+
+        UnityEngine.Object.Destroy(TrackNodeHelper.gameObject!);
+        TrackNodeHelper = null!;
     }
 
     public void ModTabDidOpen(UIPanelBuilder builder) {
