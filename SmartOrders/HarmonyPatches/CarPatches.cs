@@ -2,19 +2,25 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
+using Core;
+using Game.Messages;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
+using Model.Definition;
 using UnityEngine;
 using static Model.Car;
 
 [UsedImplicitly]
 [HarmonyPatch]
-public static class CarPatches {
+public static class CarPatches
+{
 
     [HarmonyReversePatch]
     [HarmonyPatch(typeof(Car), "KeyValueKeyFor")]
-    public static string KeyValueKeyFor(Car.EndGearStateKey key, Car.End end) {
+    public static string KeyValueKeyFor(Car.EndGearStateKey key, Car.End end)
+    {
         throw new NotImplementedException("It's a stub");
     }
 
@@ -54,14 +60,20 @@ public static class CarPatches {
 
         // dont auto set handbrake if there is a loco in the consist
         // dont auto set handbrake if there is another car with the handbrake applied
-        if (__instance.EnumerateCoupled(otherEnd).Any((car) => car.IsLocomotive || car.air.handbrakeApplied))
+        if (__instance.EnumerateCoupled(otherEnd).Any((car) => car.IsLocomotive || car.Archetype == CarArchetype.Tender || car.air.handbrakeApplied))
         {
             return;
         }
 
-        SmartOrdersUtility.DebugLog($"Automatically setting handbrake for {__instance.DisplayName}");
 
-        __instance.SetHandbrake(true);
+        var cars = __instance.EnumerateCoupled(otherEnd).ToList();
+        int numHanbrakesRequired = (int)typeof(TrainController).GetMethod("CalculateNumHandbrakes", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { cars, 1, 3 });
+
+        SmartOrdersUtility.DebugLog($"Applying handbrakes on {numHanbrakesRequired} {"car".Pluralize(numHanbrakesRequired)} starting with {__instance.DisplayName}");
+
+        cars.Reverse();
+
+        cars.Take(numHanbrakesRequired).Do((car) => car.SetHandbrake(true));
     }
 
 }

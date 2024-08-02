@@ -52,7 +52,7 @@ public static class CarInspectorPatches
             BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
         }
 
-        // BuildDisconnectCarsButtons(builder, locomotive, persistence, helper);
+        //BuildDisconnectCarsButtons(builder, locomotive, persistence, helper);
 
         if (mode2 == AutoEngineerMode.Road)
         {
