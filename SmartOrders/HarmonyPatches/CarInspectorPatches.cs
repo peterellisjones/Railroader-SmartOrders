@@ -59,7 +59,7 @@ public static class CarInspectorPatches
             BuildRoadModeCouplingButton(builder, locomotive);
         }
 
-        BuildHandbrakeAndAirHelperButons(builder, locomotive);
+        BuildHandbrakeAndAirHelperButtons(builder, locomotive);
     }
 
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -82,7 +82,8 @@ public static class CarInspectorPatches
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
     {
-        builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        // color is same-ish as vanilla, but it is workaround for bug in UIPanelBuilderPatches ...
+        builder.AddField("Car Lengths".Color("aaaaaa"), builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddButton("Stop", delegate
             {
@@ -119,7 +120,7 @@ public static class CarInspectorPatches
         }, 4));
     }
 
-    private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
+    private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
         builder.AddField("",
           builder.ButtonStrip(strip =>
@@ -184,12 +185,6 @@ public static class CarInspectorPatches
                 SmartOrdersUtility.DebugLog("updating switch mode to 'clear under'");
                 locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "CLEAR_UNDER");
             }).Height(60).Tooltip("Clear Under", "Clear switches under the train. Choose the number of switches below");
-
-            builder.AddButtonSelectable("<sprite name=Destination>", getClearSwitchMode(locomotive) == "SHOW_SWITCH", delegate
-            {
-                SmartOrdersUtility.DebugLog("updating switch mode to 'show switch'");
-                locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "SHOW_SWITCH");
-            }).Tooltip("Show me Switch", "Moves camera to target switch");
         })).Height(60);
 
 
@@ -220,7 +215,6 @@ public static class CarInspectorPatches
     {
         bool clearSwitchesUnderTrain = false;
         bool stopBeforeSwitch = false;
-        bool showSwitch = false;
 
         if (mode.IsNull)
         {
@@ -234,23 +228,18 @@ public static class CarInspectorPatches
         else if (mode == "APPROACH_AHEAD")
         {
             stopBeforeSwitch = true;
-        } else if (mode == "SHOW_SWITCH") {
-            showSwitch = true;
         }
-
+        
         SmartOrdersUtility.DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
 
         var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence, out var targetSwitch);
-        if (showSwitch && targetSwitch != null) {
+        if (SmartOrdersPlugin.Settings.ShowTargetSwitch && targetSwitch != null) {
             SmartOrdersUtility.MoveCameraToNode(targetSwitch);
-            return;
         }
-        if (distanceInMeters != null)
-        {
+
+        if (distanceInMeters != null) {
             MoveDistance(helper, locomotive, distanceInMeters.Value);
-        }
-        else
-        {
+        } else {
             SmartOrdersUtility.DebugLog("ERROR: distanceInMeters is null");
         }
     }

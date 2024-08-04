@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Track;
 using UnityEngine;
@@ -39,5 +40,8 @@ public sealed class TrackNodeHelper : MonoBehaviour
     private IEnumerator Routine() {
         yield return new WaitForSecondsRealtime(2f);
         _LineRenderer!.enabled = false;
+        OnHidden?.Invoke();
     }
+
+    public Action? OnHidden;
 }

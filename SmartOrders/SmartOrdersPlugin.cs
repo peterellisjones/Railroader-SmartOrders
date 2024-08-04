@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using GalaSoft.MvvmLight.Messaging;
+using Game.Events;
 using SmartOrders.Helpers;
 using UnityEngine;
 
@@ -6,7 +8,6 @@ namespace SmartOrders;
 
 using System;
 using System.Linq;
-using Game.Events;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Railloader;
@@ -23,7 +24,7 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
 
     public static TrackNodeHelper TrackNodeHelper { get; private set; }
 
-    private readonly ILogger _Logger = Log.ForContext<SmartOrdersPlugin>()!;
+    private readonly Serilog.ILogger _Logger = Serilog.Log.ForContext<SmartOrdersPlugin>()!;
 
     public SmartOrdersPlugin(IModdingContext context, IUIHelper uiHelper)
     {
@@ -63,25 +64,30 @@ public sealed class SmartOrdersPlugin : SingletonPluginBase<SmartOrdersPlugin>, 
     }
 
     public void ModTabDidOpen(UIPanelBuilder builder) {
-        var lengths = Enum.GetNames(typeof(MeasureType)).ToList();
+        // 'Display names' from values from MeasureType enum
+        List<string> lengths = ["Feet", "Meter", "Car Lengths"];
         builder.AddField("Measure distance in", builder.AddDropdown(lengths, (int)Settings.MeasureType, o => {
             Settings.MeasureType = (MeasureType)o;
             builder.Rebuild();
         })!);
 
-        builder.AddField("Apply handbrakes", builder.AddToggle(() => Settings.AutoApplyHandbrake, o => Settings.AutoApplyHandbrake = o)!)
+        builder.AddField("Apply handbrakes", builder.AddToggle(() => Settings.AutoApplyHandbrake, o => Settings.AutoApplyHandbrake = o)!)!
                 .Tooltip("Apply handbrakes", "When decoupling stationary cars, set the handbrake in the first car");
 
-        builder.AddField("Release handbrakes", builder.AddToggle(() => Settings.AutoReleaseHandbrake, o => Settings.AutoReleaseHandbrake = o)!)
+        builder.AddField("Release handbrakes", builder.AddToggle(() => Settings.AutoReleaseHandbrake, o => Settings.AutoReleaseHandbrake = o)!)!
                 .Tooltip("Release handbrakes", "In Yard mode, automatically release the handbrakes for any cars in the train before moving");
 
-        builder.AddField("Couple air", builder.AddToggle(() => Settings.AutoCoupleAir, o => Settings.AutoCoupleAir = o)!)
+        builder.AddField("Couple air", builder.AddToggle(() => Settings.AutoCoupleAir, o => Settings.AutoCoupleAir = o)!)!
                 .Tooltip("Couple air", "In Yard mode, automatically couple air and open anglecocks for any cars in the train before moving");
 
-        builder.AddField("Remove Yard Mode Speed Limit", builder.AddToggle(() => Settings.NoYardSpeedLimit, o => Settings.NoYardSpeedLimit = o)!)
+        builder.AddField("No Yard Speed Limit", builder.AddToggle(() => Settings.NoYardSpeedLimit, o => Settings.NoYardSpeedLimit = o)!)!
                 .Tooltip("Remove Yard Mode Speed Limit", "Remove 15mph speed limit in yard mode");
 
-        builder.AddField("Send debug logs to console", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!);
+        builder.AddField("Show Target Switch", builder.AddToggle(() => Settings.ShowTargetSwitch, o => Settings.ShowTargetSwitch = o)!)!
+               .Tooltip("Show Target Switch", "Moves camera to target switch and show yellow arrow pointing on switch node.");
+
+        builder.AddField("Debug logs", builder.AddToggle(() => Settings.EnableDebug, o => Settings.EnableDebug = o)!)!
+               .Tooltip("Send debug logs to console", "Send debug logs to console.");
     }
 
     public void ModTabDidClose()

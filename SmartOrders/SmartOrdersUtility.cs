@@ -454,9 +454,13 @@ public static class SmartOrdersUtility
         carToDisconnect.ApplyEndGearChange(carToDisconnectEndToDisconnect, EndGearStateKey.Anglecock, 0f);
     }
     
-    public static void MoveCameraToNode(TrackNode node){
-         CameraSelector.shared.ZoomToPoint(node.transform.localPosition);
-         SmartOrdersPlugin.TrackNodeHelper.Show(node);
+    public static void MoveCameraToNode(TrackNode node) {
+        var position = CameraSelector.shared!.CurrentCameraPosition;
+        SmartOrdersPlugin.TrackNodeHelper.OnHidden = () => CameraSelector.shared.ZoomToPoint(position);
+
+        CameraSelector.shared.ZoomToPoint(node.transform!.localPosition);
+
+        SmartOrdersPlugin.TrackNodeHelper.Show(node);
     }
 
 }
