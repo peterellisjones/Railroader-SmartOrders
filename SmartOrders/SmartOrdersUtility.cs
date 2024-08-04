@@ -455,11 +455,26 @@ public static class SmartOrdersUtility
     }
     
     public static void MoveCameraToNode(TrackNode node) {
-        var position = CameraSelector.shared!.CurrentCameraPosition;
-        SmartOrdersPlugin.TrackNodeHelper.OnHidden = () => CameraSelector.shared.ZoomToPoint(position);
+        var isFirstPerson = CameraSelector.shared!.CurrentCameraIsFirstPerson;
+        var initial = CameraSelector.shared.CurrentCameraPosition;
 
+        // move camera
         CameraSelector.shared.ZoomToPoint(node.transform!.localPosition);
 
+        var afterMove = CameraSelector.shared.CurrentCameraPosition;
+        SmartOrdersPlugin.TrackNodeHelper.OnHidden = () => {
+            // move camera back if was not moved when arrows hides itself 
+            var current = CameraSelector.shared!.CurrentCameraPosition;
+            if (current == afterMove) {
+                if (isFirstPerson) {
+                    CameraSelector.shared.SelectCamera(CameraSelector.CameraIdentifier.FirstPerson);
+                } else {
+                    CameraSelector.shared.ZoomToPoint(initial);
+                }
+            }
+        };
+
+        // show arrow for 2 seconds
         SmartOrdersPlugin.TrackNodeHelper.Show(node);
     }
 
