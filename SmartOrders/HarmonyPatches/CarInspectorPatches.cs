@@ -1,4 +1,6 @@
-﻿namespace SmartOrders.HarmonyPatches;
+﻿using TriangleNet.Voronoi.Legacy;
+
+namespace SmartOrders.HarmonyPatches;
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Model;
 using Model.AI;
 using Model.OpsNew;
 using SmartOrders.Extensions;
+using UI;
 using UI.Builder;
 using UI.CarInspector;
 using UI.Common;
@@ -59,7 +62,7 @@ public static class CarInspectorPatches
             BuildRoadModeCouplingButton(builder, locomotive);
         }
 
-        BuildHandbrakeAndAirHelperButons(builder, locomotive);
+        BuildHandbrakeAndAirHelperButtons(builder, locomotive);
     }
 
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -82,7 +85,8 @@ public static class CarInspectorPatches
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
     {
-        builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        // color is same-ish as vanilla, but it is workaround for bug in UIPanelBuilderPatches ...
+        builder.AddField("Car Lengths".Color("aaaaaa"), builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddButton("Stop", delegate
             {
@@ -119,7 +123,7 @@ public static class CarInspectorPatches
         }, 4));
     }
 
-    private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
+    private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
         builder.AddField("",
           builder.ButtonStrip(strip =>
@@ -192,13 +196,14 @@ public static class CarInspectorPatches
             builder.ButtonStrip(
             strip =>
             {
-                strip.AddButton("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                
+                strip.AddButton("1", () => MovePastSwitches(helper, 1, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence, !GameInput.IsShiftDown))!
                     .Tooltip("1 switch", "Move 1 switch");
 
                 for (var i = 2; i <= 10; i++)
                 {
                     var numSwitches = i;
-                    strip.AddButton($"{numSwitches}", () => MovePastSwitches(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence))!
+                    strip.AddButton($"{numSwitches}", () => MovePastSwitches(helper, numSwitches, locomotive.KeyValueObject.Get("CLEAR_SWITCH_MODE"), locomotive, persistence, !GameInput.IsShiftDown))!
                         .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                 }
             }, 4);
@@ -210,7 +215,7 @@ public static class CarInspectorPatches
         helper.SetOrdersValue(AutoEngineerMode.Yard, null, null, distance);
     }
 
-    private static void MovePastSwitches(AutoEngineerOrdersHelper helper, int switchesToFind, KeyValue.Runtime.Value mode, BaseLocomotive locomotive, AutoEngineerPersistence persistence)
+    private static void MovePastSwitches(AutoEngineerOrdersHelper helper, int switchesToFind, KeyValue.Runtime.Value mode, BaseLocomotive locomotive, AutoEngineerPersistence persistence, bool showTargetSwitch)
     {
         bool clearSwitchesUnderTrain = false;
         bool stopBeforeSwitch = false;
@@ -228,16 +233,17 @@ public static class CarInspectorPatches
         {
             stopBeforeSwitch = true;
         }
-
+        
         SmartOrdersUtility.DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
 
-        var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence);
-        if (distanceInMeters != null)
-        {
-            MoveDistance(helper, locomotive, distanceInMeters.Value);
+        var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence, out var targetSwitch);
+        if (SmartOrdersPlugin.Settings.ShowTargetSwitch && showTargetSwitch && targetSwitch != null && distanceInMeters != null) {
+            SmartOrdersUtility.MoveCameraToNode(targetSwitch, distanceInMeters.Value);
         }
-        else
-        {
+
+        if (distanceInMeters != null) {
+            MoveDistance(helper, locomotive, distanceInMeters.Value);
+        } else {
             SmartOrdersUtility.DebugLog("ERROR: distanceInMeters is null");
         }
     }

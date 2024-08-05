@@ -9,6 +9,7 @@ public class Settings
     public bool AutoApplyHandbrake { get; set; }
 
     public bool NoYardSpeedLimit {  get; set; }
+    public bool ShowTargetSwitch {  get; set; }
 
     public MeasureType MeasureType { get; set; }
 
