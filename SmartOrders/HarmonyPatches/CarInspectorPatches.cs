@@ -237,8 +237,8 @@ public static class CarInspectorPatches
         SmartOrdersUtility.DebugLog($"Handling move order mode: {mode}, switchesToFind: {switchesToFind}, clearSwitchesUnderTrain: {clearSwitchesUnderTrain}, stopBeforeSwitch: {stopBeforeSwitch}");
 
         var distanceInMeters = SmartOrdersUtility.GetDistanceForSwitchOrder(switchesToFind, clearSwitchesUnderTrain, stopBeforeSwitch, locomotive, persistence, out var targetSwitch);
-        if (SmartOrdersPlugin.Settings.ShowTargetSwitch && showTargetSwitch && targetSwitch != null) {
-            SmartOrdersUtility.MoveCameraToNode(targetSwitch);
+        if (SmartOrdersPlugin.Settings.ShowTargetSwitch && showTargetSwitch && targetSwitch != null && distanceInMeters != null) {
+            SmartOrdersUtility.MoveCameraToNode(targetSwitch, distanceInMeters.Value);
         }
 
         if (distanceInMeters != null) {
