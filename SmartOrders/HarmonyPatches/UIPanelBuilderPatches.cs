@@ -18,7 +18,7 @@ public static class UIPanelBuilderPatches
     [HarmonyPatch(new Type[] { typeof(string), typeof(RectTransform) })]
     public static bool AddField(string label, RectTransform control)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared.IsEnabled || !CarInspectorPatches.InsidePopulateAIPanel)
         {
             return true;
         }
@@ -34,7 +34,7 @@ public static class UIPanelBuilderPatches
     [HarmonyPatch(typeof(UIPanelBuilder), "ButtonStrip")]
     public static bool ButtonStrip(Action<UIPanelBuilder> closure, int spacing = 8)
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared.IsEnabled || !CarInspectorPatches.InsidePopulateAIPanel)
         {
             return true;
         }
@@ -53,7 +53,7 @@ public static class UIPanelBuilderPatches
     [HarmonyPatch(typeof(UIPanelBuilder), "AddExpandingVerticalSpacer")]
     public static bool AddExpandingVerticalSpacer()
     {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
+        if (!SmartOrdersPlugin.Shared.IsEnabled || !CarInspectorPatches.InsidePopulateAIPanel)
         {
             return true;
         }

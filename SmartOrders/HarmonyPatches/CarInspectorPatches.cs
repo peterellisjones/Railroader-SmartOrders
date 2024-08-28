@@ -23,10 +23,18 @@ using static Model.Car;
 [HarmonyPatch]
 public static class CarInspectorPatches
 {
+    public static bool InsidePopulateAIPanel;
+
 
     const float ADDITIONAL_WINDOW_HEIGHT_NEEDED = 95;
     private static Vector2? originalWindowSize;
 
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(CarInspector), "PopulateAIPanel")]
+    public static void PopulateAIPanelPrefix() {
+        InsidePopulateAIPanel = true;
+    }
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
     public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car, Window ____window)
@@ -35,6 +43,9 @@ public static class CarInspectorPatches
         {
             return;
         }
+
+        InsidePopulateAIPanel = false;
+
         var locomotive = (BaseLocomotive)____car;
         var helper = new AutoEngineerOrdersHelper(locomotive, persistence);
         var mode2 = helper.Mode();
@@ -82,7 +93,7 @@ public static class CarInspectorPatches
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
     {
-        builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        builder.AddField("Car Lengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddButton("Stop", delegate
             {
