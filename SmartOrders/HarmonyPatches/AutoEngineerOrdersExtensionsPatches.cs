@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Game.Messages;
 using HarmonyLib;
+using Model.AI;
 using Track;
 using UI.EngineControls;
 
