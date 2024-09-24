@@ -314,7 +314,7 @@ public static class SmartOrdersUtility
 
     private static void Say(string message)
     {
-        Alert alert = new Alert(AlertStyle.Console, message, TimeWeather.Now.TotalSeconds);
+        Alert alert = new Alert(AlertStyle.Console, AlertLevel.Info, message, TimeWeather.Now.TotalSeconds);
         WindowManager.Shared.Present(alert);
     }
 

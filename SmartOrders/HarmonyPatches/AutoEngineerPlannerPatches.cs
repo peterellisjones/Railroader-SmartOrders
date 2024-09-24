@@ -15,22 +15,22 @@ using UnityEngine;
 public static class AutoEngineerPlannerPatches
 {
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(AutoEngineerPlanner), "Search")]
-    private static void Search(BaseLocomotive locomotive, ref bool stopBeforeCar)
-    {
-        if (!SmartOrdersPlugin.Shared.IsEnabled)
-        {
-            return;
-        }
+    //[HarmonyPrefix]
+    //[HarmonyPatch(typeof(AutoEngineerPlanner), "Search")]
+    //private static void Search(BaseLocomotive locomotive, ref bool stopBeforeCar)
+    //{
+    //    if (!SmartOrdersPlugin.Shared.IsEnabled)
+    //    {
+    //        return;
+    //    }
 
 
-        bool allowCouplingInRoadMode = locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").BoolValue;
+    //    bool allowCouplingInRoadMode = locomotive.KeyValueObject.Get("ALLOW_COUPLING_IN_ROAD_MODE").BoolValue;
 
-        if (allowCouplingInRoadMode && stopBeforeCar)
-        {
-            stopBeforeCar = false;
-        }
-    }
+    //    if (allowCouplingInRoadMode && stopBeforeCar)
+    //    {
+    //        stopBeforeCar = false;
+    //    }
+    //}
 
 }
