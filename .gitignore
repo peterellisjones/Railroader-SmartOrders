@@ -4,3 +4,5 @@ SmartOrders/obj
 _ReSharper.Caches
 *.user
 *.zip
+/Paths.user.sample
+/.gitignore

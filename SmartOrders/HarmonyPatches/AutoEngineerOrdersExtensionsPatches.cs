@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Game.Messages;
 using HarmonyLib;
+using Model.AI;
 using Track;
 using UI.EngineControls;
 
@@ -20,6 +21,7 @@ public static class AutoEngineerOrdersExtensionsPatches
             AutoEngineerMode.Off => 0,
             AutoEngineerMode.Road => 45,
             AutoEngineerMode.Yard => SmartOrdersPlugin.Settings.NoYardSpeedLimit ? 45 : 15,
+            AutoEngineerMode.Waypoint => 45,
             _ => throw new ArgumentOutOfRangeException("mode", mode, null),
         };
     }

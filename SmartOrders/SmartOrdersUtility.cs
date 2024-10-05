@@ -16,7 +16,7 @@ using UI.Common;
 using UnityEngine;
 using Game;
 using Network.Messages;
-using Model.OpsNew;
+using Model.Ops;
 using static Model.Car;
 
 public static class SmartOrdersUtility
@@ -314,7 +314,7 @@ public static class SmartOrdersUtility
 
     private static void Say(string message)
     {
-        Alert alert = new Alert(AlertStyle.Console, message, TimeWeather.Now.TotalSeconds);
+        Alert alert = new Alert(AlertStyle.Console, AlertLevel.Info, message, TimeWeather.Now.TotalSeconds);
         WindowManager.Shared.Present(alert);
     }
 
