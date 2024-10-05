@@ -9,7 +9,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
 using Model.AI;
-using Model.OpsNew;
+using Model.Ops;
 using SmartOrders.Extensions;
 using UI.Builder;
 using UI.CarInspector;

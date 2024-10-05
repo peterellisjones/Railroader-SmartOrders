@@ -16,7 +16,7 @@ using UI.Common;
 using UnityEngine;
 using Game;
 using Network.Messages;
-using Model.OpsNew;
+using Model.Ops;
 using static Model.Car;
 
 public static class SmartOrdersUtility
