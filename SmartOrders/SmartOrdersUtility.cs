@@ -247,7 +247,7 @@ public static class SmartOrdersUtility
                 break;
             case MeasureType.CarLengths:
                 var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+                distanceString = carLengths == 0 ? "less than a car length" : $"{carLengths} car {"length".Pluralize(carLengths)}";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
