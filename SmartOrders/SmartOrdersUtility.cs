@@ -166,42 +166,10 @@ public static class SmartOrdersUtility
                 {
                     break;
                 }
-
-                // update segments if looking past switch
-
-                // for switches we need to work out which way it is going
-                graph.DecodeSwitchAt(node, out var switchEnterSegment, out var switchExitNormal, out var switchExitReverse);
-
-                // switchEnterSegment, switchExitSegmentA, switchExitSegmentB cannot be null here, because graph.IsSwitch(node) call above ...
-
-                // if we are coming from a switch exit, the next segment is the switch entrance
-                if (switchExitNormal != null && segment.id == switchExitNormal.id || switchExitReverse != null && segment.id == switchExitReverse.id)
-                {
-                    DebugLog("Switch only has one exit");
-                    segment = switchEnterSegment;
-                }
-                else
-                {
-                    // otherwise depends on if the switch is thrown
-                    if (node.isThrown)
-                    {
-                        DebugLog("Following thrown exit");
-                        segment = switchExitReverse;
-                    }
-                    else
-                    {
-                        DebugLog("Following normal exit");
-                        segment = switchExitNormal;
-                    }
-                }
-            }
-            else
-            {
-                // next segment for non-switches
-                graph.SegmentsReachableFrom(segment, segmentEnd, out var segmentExitNormal, out _);
-                segment = segmentExitNormal;
             }
 
+            // update segments if looking past switch
+            segment = GetNextSegment(node, segment, segmentEnd);
             if (segment == null)
             {
                 DebugLog("Next segment is null");
@@ -251,6 +219,11 @@ public static class SmartOrdersUtility
                 {
                     distanceInMeters += totalLength;
                 }
+
+                // stop after switch - check is there is enough space ...
+                if (node != null && !TrainCanFitAfterSwitch(coupledCars, node, segment, segmentEnd, out var trackLength)) {
+                    Say($"Train is too long ({totalLength}m) and will not fit there (only {trackLength}m available) ...");
+                }
             }
         }
 
@@ -274,7 +247,7 @@ public static class SmartOrdersUtility
                 break;
             case MeasureType.CarLengths:
                 var carLengths = Mathf.FloorToInt(distanceInMeters / CAR_LENGTH_IN_METERS);
-                distanceString = $"{carLengths} car {"length".Pluralize(carLengths)}";
+                distanceString = carLengths == 0 ? "less than a car length" : $"{carLengths} car {"length".Pluralize(carLengths)}";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -299,6 +272,73 @@ public static class SmartOrdersUtility
         }
 
         return distanceInMeters;
+    }
+
+    private static TrackSegment? GetNextSegment(TrackNode node, TrackSegment segment, TrackSegment.End segmentEnd) {
+        Graph graph = Graph.Shared;
+        if (graph.DecodeSwitchAt(node, out var switchEnterSegment, out var switchExitNormal, out var switchExitReverse))
+        {
+            // if we are coming from a switch exit, the next segment is the switch entrance
+            if (switchExitNormal != null && segment.id == switchExitNormal.id || switchExitReverse != null && segment.id == switchExitReverse.id)
+            {
+                DebugLog("Switch only has one exit");
+                return switchEnterSegment;
+            }
+            else
+            {
+                // otherwise depends on if the switch is thrown
+                if (node.isThrown)
+                {
+                    DebugLog("Following thrown exit");
+                    return switchExitReverse;
+                }
+                else
+                {
+                    DebugLog("Following normal exit");
+                    return switchExitNormal;
+                }
+            }
+        }
+        else
+        {
+            // next segment for non-switches
+            graph.SegmentsReachableFrom(segment, segmentEnd, out var segmentExitNormal, out _);
+            return segmentExitNormal;
+        }
+    }
+
+    private static bool TrainCanFitAfterSwitch(List<Car> coupledCars, TrackNode targetSwitch, TrackSegment enterSegment, TrackSegment.End segmentEnd, out float trackLength) {
+        DebugLog("Found target switch, checking if there is enough space for train ...");
+
+        var trainLength = coupledCars.Sum(car => car.carLength);
+
+        trackLength = 0f;
+
+        var node    = targetSwitch;
+        var segment = enterSegment;
+
+        while (trainLength > trackLength) {
+            segment = GetNextSegment(node, segment, segmentEnd);
+            if (segment == null)
+            {
+                DebugLog("Next segment is null");
+                return false;
+            }
+
+            trackLength += segment.GetLength();
+            DebugLog($"Adding track segment {segment.GetLength()}; need: {trainLength}, have: {trackLength}");
+
+            // next segment end is whatever end is NOT pointing at the current node
+            segmentEnd = segment.NodeForEnd(TrackSegment.End.A).id == node.id ? TrackSegment.End.B : TrackSegment.End.A;
+
+            node = segment.NodeForEnd(segmentEnd);
+            if (node == null) {
+                DebugLog("Next node is null");
+                return false;
+            }
+        }
+
+        return trainLength < trackLength;
     }
 
     public static void DebugLog(string message)
