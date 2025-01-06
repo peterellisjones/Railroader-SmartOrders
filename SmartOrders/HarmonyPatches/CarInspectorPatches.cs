@@ -9,7 +9,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
 using Model.AI;
-using Model.OpsNew;
+using Model.Ops;
 using SmartOrders.Extensions;
 using UI.Builder;
 using UI.CarInspector;
@@ -37,7 +37,7 @@ public static class CarInspectorPatches
         }
         var locomotive = (BaseLocomotive)____car;
         var helper = new AutoEngineerOrdersHelper(locomotive, persistence);
-        var mode2 = helper.Mode();
+        var mode2 = helper.Mode;
 
         if (mode2 == AutoEngineerMode.Yard)
         {
@@ -54,10 +54,10 @@ public static class CarInspectorPatches
 
         //BuildDisconnectCarsButtons(builder, locomotive, persistence, helper);
 
-        if (mode2 == AutoEngineerMode.Road)
-        {
-            BuildRoadModeCouplingButton(builder, locomotive);
-        }
+        //if (mode2 == AutoEngineerMode.Road)
+        //{
+        //    BuildRoadModeCouplingButton(builder, locomotive);
+        //}
 
         BuildHandbrakeAndAirHelperButons(builder, locomotive);
     }
@@ -245,7 +245,7 @@ public static class CarInspectorPatches
     // Not currently used but could be added if we want to merge FlyShuntUI into SmartOrders
     static void BuildDisconnectCarsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
-        AutoEngineerMode mode2 = helper.Mode();
+        AutoEngineerMode mode2 = helper.Mode;
 
         builder.AddField("Disconnect", builder.ButtonStrip(delegate (UIPanelBuilder bldr)
         {
