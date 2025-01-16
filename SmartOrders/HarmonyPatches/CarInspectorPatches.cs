@@ -9,6 +9,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Model;
 using Model.AI;
+using Model.Definition;
 using Model.Ops;
 using SmartOrders.Extensions;
 using UI.Builder;
@@ -24,44 +25,58 @@ using static Model.Car;
 public static class CarInspectorPatches
 {
 
-    const float ADDITIONAL_WINDOW_HEIGHT_NEEDED = 95;
-    private static Vector2? originalWindowSize;
-
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(CarInspector), "BuildContextualOrders")]
-    public static void BuildContextualOrders(UIPanelBuilder builder, AutoEngineerPersistence persistence, Car ____car, Window ____window)
+    [HarmonyPatch(typeof(CarInspector), "PopulatePanel")]
+    private static bool PopulatePanel(UIPanelBuilder builder, CarInspector __instance, Car ____car, UIState<string> ____selectedTabState, HashSet<IDisposable> ____observers)
     {
         if (!SmartOrdersPlugin.Shared.IsEnabled)
         {
-            return;
+            return true;
         }
-        var locomotive = (BaseLocomotive)____car;
-        var helper = new AutoEngineerOrdersHelper(locomotive, persistence);
-        var mode2 = helper.Mode;
 
-        if (mode2 == AutoEngineerMode.Yard)
+        MethodInfo TitleForCar = typeof(CarInspector).GetMethod("TitleForCar", BindingFlags.NonPublic | BindingFlags.Static);
+        MethodInfo SubtitleForCar = typeof(CarInspector).GetMethod("SubtitleForCar", BindingFlags.NonPublic | BindingFlags.Static);
+
+        MethodInfo PopulateCarPanel = typeof(CarInspector).GetMethod("PopulateCarPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+        MethodInfo PopulateEquipmentPanel = typeof(CarInspector).GetMethod("PopulateEquipmentPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+        MethodInfo PopulatePassengerCarPanel = typeof(CarInspector).GetMethod("PopulatePassengerCarPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+        MethodInfo PopulateOperationsPanel = typeof(CarInspector).GetMethod("PopulateOperationsPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        MethodInfo Rebuild = typeof(CarInspector).GetMethod("Rebuild", BindingFlags.NonPublic | BindingFlags.Instance);
+
+
+        builder.AddTitle((string)TitleForCar.Invoke(null, [____car]), (string)SubtitleForCar.Invoke(null, [____car]));
+        builder.AddTabbedPanels(____selectedTabState, delegate (UITabbedPanelBuilder tabBuilder)
         {
-            if (originalWindowSize == null)
+            tabBuilder.AddTab("Car", "car", builder => PopulateCarPanel.Invoke(__instance, [builder]));
+            tabBuilder.AddTab("Equipment", "equipment", (builder) => PopulateEquipmentPanel.Invoke(__instance, [builder]));
+            if (____car.IsPassengerCar())
             {
-                originalWindowSize = ____window.GetContentSize();
+                tabBuilder.AddTab("Passenger", "pass", (builder) => PopulatePassengerCarPanel.Invoke(__instance, [builder]));
             }
 
-            ____window.SetContentSize(new Vector2(originalWindowSize.Value.x - 2, 424));
+            if (____car.Archetype != CarArchetype.Tender)
+            {
+                tabBuilder.AddTab("Operations", "ops", (builder) => PopulateOperationsPanel.Invoke(__instance, [builder]));
+                ____observers.Add(____car.KeyValueObject.Observe("ops.waybill", delegate
+                {
+                    Rebuild.Invoke(__instance, null);
+                }, callInitial: false));
+            }
+            if (____car.Archetype == CarArchetype.LocomotiveSteam || ____car.Archetype == CarArchetype.LocomotiveSteam)
+            {
+                tabBuilder.AddTab("Misc", "misc", builder => BuildMiscTab(builder, (BaseLocomotive)____car));
+            }
+        });
 
-            BuildAlternateCarLengthsButtons(builder, locomotive, helper);
-            BuildSwitchYardAIButtons(builder, locomotive, persistence, helper);
-        }
-
-        //BuildDisconnectCarsButtons(builder, locomotive, persistence, helper);
-
-        //if (mode2 == AutoEngineerMode.Road)
-        //{
-        //    BuildRoadModeCouplingButton(builder, locomotive);
-        //}
-
-        BuildHandbrakeAndAirHelperButons(builder, locomotive);
+        return false;
     }
 
+    private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car)
+    {
+        BuildHandbrakeAndAirHelperButtons(builder, _car);
+        builder.AddExpandingVerticalSpacer();
+    }
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
 
@@ -119,25 +134,34 @@ public static class CarInspectorPatches
         }, 4));
     }
 
-    private static void BuildHandbrakeAndAirHelperButons(UIPanelBuilder builder, BaseLocomotive locomotive)
+    private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
-        builder.AddField("",
+        builder.AddField("Smart Orders",
           builder.ButtonStrip(strip =>
           {
-              var cars = locomotive.EnumerateCoupled()!.ToList()!;
+              var cars = locomotive.EnumerateCoupled().ToList();
 
               if (cars.Any(c => c.air!.handbrakeApplied))
               {
-                  strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () => SmartOrdersUtility.ReleaseAllHandbrakes(locomotive))!
+                  strip.AddButton($"Release {TextSprites.HandbrakeWheel}", () =>
+                  {
+                      SmartOrdersUtility.ReleaseAllHandbrakes(locomotive);
+                      strip.Rebuild();
+                  })
                       .Tooltip("Release handbrakes", $"Iterates over cars in this consist and releases {TextSprites.HandbrakeWheel}.");
               }
 
               if (cars.Any(c => c.EndAirSystemIssue()))
               {
-                  strip.AddButton("Connect Air", () => SmartOrdersUtility.ConnectAir(locomotive))!
+                  strip.AddButton("Connect Air", () =>
+                  {
+                      SmartOrdersUtility.ConnectAir(locomotive);
+                      strip.Rebuild();
+                  })
                       .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
               }
-          })!
+              strip.RebuildOnInterval(5f);
+          })
        );
     }
 
