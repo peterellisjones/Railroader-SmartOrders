@@ -44,6 +44,8 @@ public static class CarInspectorPatches
 
         MethodInfo Rebuild = typeof(CarInspector).GetMethod("Rebuild", BindingFlags.NonPublic | BindingFlags.Instance);
 
+        AutoEngineerPersistence persistence = new AutoEngineerPersistence(____car.KeyValueObject);
+        var helper = new AutoEngineerOrdersHelper(____car, persistence);
 
         builder.AddTitle((string)TitleForCar.Invoke(null, [____car]), (string)SubtitleForCar.Invoke(null, [____car]));
         builder.AddTabbedPanels(____selectedTabState, delegate (UITabbedPanelBuilder tabBuilder)
@@ -63,18 +65,36 @@ public static class CarInspectorPatches
                     Rebuild.Invoke(__instance, null);
                 }, callInitial: false));
             }
-            if (____car.Archetype == CarArchetype.LocomotiveSteam || ____car.Archetype == CarArchetype.LocomotiveSteam)
+            if (____car.Archetype == CarArchetype.LocomotiveSteam || ____car.Archetype == CarArchetype.LocomotiveDiesel)
             {
-                tabBuilder.AddTab("Misc", "misc", builder => BuildMiscTab(builder, (BaseLocomotive)____car));
+                tabBuilder.AddTab("SmartOrders", "smartorders", builder => BuildMiscTab(builder, (BaseLocomotive)____car, persistence, helper));
             }
         });
 
         return false;
     }
 
-    private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car)
+    private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
+        builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        {
+            builder.AddObserver(persistence.ObserveOrders(delegate
+            {
+                builder.Rebuild();
+            }, false));
+            builder.AddButtonSelectable("Reverse", !persistence.Orders.Forward, () =>
+            {
+                helper.SetOrdersValue(null, false, null, null);
+                builder.Rebuild();
+            });
+            builder.AddButtonSelectable("Forward", persistence.Orders.Forward, () =>
+            {
+                helper.SetOrdersValue(null, true, null, null);
+                builder.Rebuild();
+            });
+        });
         BuildHandbrakeAndAirHelperButtons(builder, _car);
+        BuildSwitchYardAIButtons(builder, _car, persistence, helper);
         builder.AddExpandingVerticalSpacer();
     }
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -136,7 +156,7 @@ public static class CarInspectorPatches
 
     private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
     {
-        builder.AddField("Smart Orders",
+        
           builder.ButtonStrip(strip =>
           {
               var cars = locomotive.EnumerateCoupled().ToList();
@@ -161,7 +181,7 @@ public static class CarInspectorPatches
                       .Tooltip("Connect Consist Air", "Iterates over each car in this consist and connects gladhands and opens anglecocks.");
               }
               strip.RebuildOnInterval(5f);
-          })
+          }
        );
     }
 
@@ -179,7 +199,7 @@ public static class CarInspectorPatches
             return clearSwitchMode;
         };
 
-        builder.AddField("Switches", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddObserver(locomotive.KeyValueObject.Observe("CLEAR_SWITCH_MODE", delegate
             {
@@ -208,10 +228,10 @@ public static class CarInspectorPatches
                 SmartOrdersUtility.DebugLog("updating switch mode to 'clear under'");
                 locomotive.KeyValueObject.Set("CLEAR_SWITCH_MODE", "CLEAR_UNDER");
             }).Height(60).Tooltip("Clear Under", "Clear switches under the train. Choose the number of switches below");
-        })).Height(60);
+        }).Height(60);
 
 
-        builder.AddField("", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.ButtonStrip(
             strip =>
@@ -226,7 +246,7 @@ public static class CarInspectorPatches
                         .Tooltip($"{numSwitches} switches", $"Move {numSwitches} switches");
                 }
             }, 4);
-        }));
+        });
     }
 
     private static void MoveDistance(AutoEngineerOrdersHelper helper, BaseLocomotive locomotive, float distance)
