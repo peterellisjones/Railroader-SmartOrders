@@ -76,6 +76,7 @@ public static class CarInspectorPatches
 
     private static void BuildMiscTab(UIPanelBuilder builder, BaseLocomotive _car, AutoEngineerPersistence persistence, AutoEngineerOrdersHelper helper)
     {
+        builder.AddLabel("Direction");
         builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddObserver(persistence.ObserveOrders(delegate
@@ -93,8 +94,12 @@ public static class CarInspectorPatches
                 builder.Rebuild();
             });
         });
+        builder.AddLabel("Contextual");
         BuildHandbrakeAndAirHelperButtons(builder, _car);
+        builder.AddLabel("Yard AI switches");
         BuildSwitchYardAIButtons(builder, _car, persistence, helper);
+        builder.AddLabel("Yard AI car lengths");
+        BuildAlternateCarLengthsButtons(builder, _car, helper);
         builder.AddExpandingVerticalSpacer();
     }
     private static void BuildRoadModeCouplingButton(UIPanelBuilder builder, BaseLocomotive locomotive)
@@ -117,7 +122,7 @@ public static class CarInspectorPatches
 
     private static void BuildAlternateCarLengthsButtons(UIPanelBuilder builder, BaseLocomotive locomotive, AutoEngineerOrdersHelper helper)
     {
-        builder.AddField("CarLengths", builder.ButtonStrip(delegate (UIPanelBuilder builder)
+        builder.ButtonStrip(delegate (UIPanelBuilder builder)
         {
             builder.AddButton("Stop", delegate
             {
@@ -151,7 +156,7 @@ public static class CarInspectorPatches
             {
                 MoveDistance(helper, locomotive, 12.192f * 1_000_000.5f);
             }).Tooltip("INF", "Move infinity car lengths");
-        }, 4));
+        }, 4);
     }
 
     private static void BuildHandbrakeAndAirHelperButtons(UIPanelBuilder builder, BaseLocomotive locomotive)
